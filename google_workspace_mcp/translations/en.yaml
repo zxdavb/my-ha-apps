@@ -1,0 +1,25 @@
+configuration:
+  google_oauth_client_id:
+    name: Google OAuth Client ID
+    description: OAuth client ID from Google Cloud.
+  google_oauth_client_secret:
+    name: Google OAuth Client Secret
+    description: Optional client secret for confidential clients.
+  mcp_enable_oauth21:
+    name: Enable OAuth 2.1
+    description: Enable OAuth 2.1 multi-user support.
+  workspace_mcp_stateless_mode:
+    name: Enable stateless mode
+    description: Run in stateless mode (requires OAuth 2.1).
+  tool_tier:
+    name: Tool tier
+    description: Choose core, extended, or complete.
+  tools:
+    name: Tools filter
+    description: Comma-separated tool groups, for example gmail,drive,calendar.
+  permissions:
+    name: Permissions
+    description: Permission list, for example gmail:organize drive:readonly.
+  workspace_mcp_port:
+    name: Port
+    description: Port used by the MCP HTTP server.

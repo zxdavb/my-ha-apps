@@ -1,0 +1,94 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Start the Google Workspace MCP service
+# ==============================================================================
+
+set -e
+
+declare -a cmd
+declare -a tools
+declare -a permissions
+
+auth_client_id="$(bashio::config 'google_oauth_client_id')"
+auth_client_secret="$(bashio::config 'google_oauth_client_secret')"
+credentials_file="$(bashio::config 'google_client_secret_path')"
+user_google_email="$(bashio::config 'user_google_email')"
+external_url="$(bashio::config 'workspace_external_url')"
+redirect_uri="$(bashio::config 'google_oauth_redirect_uri')"
+custom_redirect_uris="$(bashio::config 'oauth_custom_redirect_uris')"
+allowed_origins="$(bashio::config 'oauth_allowed_origins')"
+jwt_signing_key="$(bashio::config 'fastmcp_server_auth_google_jwt_signing_key')"
+transport="$(bashio::config 'transport')"
+tool_tier="$(bashio::config 'tool_tier')"
+selected_tools="$(bashio::config 'tools')"
+permissions_raw="$(bashio::config 'permissions')"
+allowed_file_dirs="$(bashio::config 'allowed_file_dirs')"
+port="$(bashio::config 'workspace_mcp_port')"
+host="$(bashio::config 'workspace_mcp_host')"
+
+[[ -z "${transport}" ]] && transport="streamable-http"
+[[ -z "${host}" ]] && host="0.0.0.0"
+[[ -z "${port}" ]] && port="8000"
+[[ -z "${allowed_file_dirs}" ]] && allowed_file_dirs="/share"
+
+mkdir -p /data/google_workspace_credentials
+export GOOGLE_MCP_CREDENTIALS_DIR=/data/google_workspace_credentials
+export WORKSPACE_MCP_PORT="${port}"
+export WORKSPACE_MCP_HOST="${host}"
+export ALLOWED_FILE_DIRS="${allowed_file_dirs}"
+
+[[ -n "${auth_client_id}" ]] && export GOOGLE_OAUTH_CLIENT_ID="${auth_client_id}"
+[[ -n "${auth_client_secret}" ]] && export GOOGLE_OAUTH_CLIENT_SECRET="${auth_client_secret}"
+[[ -n "${credentials_file}" ]] && export GOOGLE_CLIENT_SECRET_PATH="${credentials_file}"
+[[ -n "${user_google_email}" ]] && export USER_GOOGLE_EMAIL="${user_google_email}"
+[[ -n "${external_url}" ]] && export WORKSPACE_EXTERNAL_URL="${external_url}"
+[[ -n "${redirect_uri}" ]] && export GOOGLE_OAUTH_REDIRECT_URI="${redirect_uri}"
+[[ -n "${custom_redirect_uris}" ]] && export OAUTH_CUSTOM_REDIRECT_URIS="${custom_redirect_uris}"
+[[ -n "${allowed_origins}" ]] && export OAUTH_ALLOWED_ORIGINS="${allowed_origins}"
+[[ -n "${jwt_signing_key}" ]] && export FASTMCP_SERVER_AUTH_GOOGLE_JWT_SIGNING_KEY="${jwt_signing_key}"
+
+if bashio::config.true 'oauthlib_insecure_transport'; then
+    export OAUTHLIB_INSECURE_TRANSPORT=1
+fi
+if bashio::config.true 'mcp_enable_oauth21'; then
+    export MCP_ENABLE_OAUTH21=true
+fi
+if bashio::config.true 'external_oauth21_provider'; then
+    export EXTERNAL_OAUTH21_PROVIDER=true
+fi
+if bashio::config.true 'workspace_mcp_stateless_mode'; then
+    export WORKSPACE_MCP_STATELESS_MODE=true
+fi
+
+cmd=(workspace-mcp --transport "${transport}")
+
+if [[ -n "${tool_tier}" ]]; then
+    cmd+=(--tool-tier "${tool_tier}")
+fi
+
+if [[ -n "${selected_tools}" ]]; then
+    selected_tools="${selected_tools//,/ }"
+    read -r -a tools <<< "${selected_tools}"
+    if [[ ${#tools[@]} -gt 0 ]]; then
+        cmd+=(--tools "${tools[@]}")
+    fi
+fi
+
+if [[ -n "${permissions_raw}" ]]; then
+    permissions_raw="${permissions_raw//,/ }"
+    read -r -a permissions <<< "${permissions_raw}"
+    if [[ ${#permissions[@]} -gt 0 ]]; then
+        cmd+=(--permissions "${permissions[@]}")
+    fi
+fi
+
+if bashio::config.true 'read_only'; then
+    cmd+=(--read-only)
+fi
+if bashio::config.true 'single_user'; then
+    cmd+=(--single-user)
+fi
+
+bashio::log.info "Starting Google Workspace MCP on ${host}:${port} with transport '${transport}'."
+
+exec "${cmd[@]}"
