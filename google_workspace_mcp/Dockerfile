@@ -5,7 +5,11 @@ FROM ${BUILD_FROM}
 ARG WORKSPACE_MCP_VERSION=1.19.0
 
 RUN apk add --no-cache python3 py3-pip \
-    && pip3 install --no-cache-dir "workspace-mcp[disk]==${WORKSPACE_MCP_VERSION}"
+    && python3 -m venv /opt/venv \
+    && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
+    && /opt/venv/bin/pip install --no-cache-dir "workspace-mcp[disk]==${WORKSPACE_MCP_VERSION}"
+
+ENV PATH="/opt/venv/bin:${PATH}"
 
 COPY rootfs /
 
