@@ -59,4 +59,3 @@ schema:
   single_user: "bool"
   permissions: "str?"
   allowed_file_dirs: "str?"
-image: "ghcr.io/zxdavb/google-workspace-mcp"
