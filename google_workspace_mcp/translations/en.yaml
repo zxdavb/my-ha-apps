@@ -5,21 +5,75 @@ configuration:
   google_oauth_client_secret:
     name: Google OAuth Client Secret
     description: Optional client secret for confidential clients.
-  mcp_enable_oauth21:
-    name: Enable OAuth 2.1
-    description: Enable OAuth 2.1 multi-user support.
-  workspace_mcp_stateless_mode:
-    name: Enable stateless mode
-    description: Run in stateless mode (requires OAuth 2.1).
+  google_client_secret_path:
+    name: Client secret file path
+    description: Optional path to a Google OAuth client secret file.
+  user_google_email:
+    name: User Google email
+    description: Optional account to scope operations to a specific user.
   tool_tier:
     name: Tool tier
     description: Choose core, extended, or complete.
-  tools:
-    name: Tools filter
-    description: Comma-separated tool groups, for example gmail,drive,calendar.
-  permissions:
-    name: Permissions
-    description: Permission list, for example gmail:organize drive:readonly.
-  workspace_mcp_port:
-    name: Port
-    description: Port used by the MCP HTTP server.
+  oauth:
+    name: OAuth settings
+    description: Optional OAuth behavior and routing settings.
+    fields:
+      mcp_enable_oauth21:
+        name: Enable OAuth 2.1
+        description: Enable OAuth 2.1 multi-user support.
+      external_oauth21_provider:
+        name: External OAuth 2.1 provider
+        description: Use an external OAuth 2.1 provider.
+      fastmcp_server_auth_google_jwt_signing_key:
+        name: JWT signing key
+        description: Optional JWT signing key for auth.
+      oauthlib_insecure_transport:
+        name: Allow insecure OAuth transport
+        description: Enable only for local development over HTTP.
+      google_oauth_redirect_uri:
+        name: OAuth redirect URI
+        description: Optional redirect URI override.
+      oauth_custom_redirect_uris:
+        name: Custom redirect URIs
+        description: Optional comma-separated custom redirect URIs.
+      oauth_allowed_origins:
+        name: Allowed origins
+        description: Optional comma-separated list of CORS origins.
+      workspace_external_url:
+        name: External URL
+        description: Optional public URL used in OAuth flows.
+  mcp_host:
+    name: MCP host settings
+    description: Optional MCP listener and runtime settings.
+    fields:
+      workspace_mcp_stateless_mode:
+        name: Enable stateless mode
+        description: Run in stateless mode (requires OAuth 2.1).
+      workspace_mcp_host:
+        name: MCP host
+        description: Host interface for the MCP server.
+      workspace_mcp_port:
+        name: MCP port
+        description: Port used by the MCP HTTP server.
+      transport:
+        name: Transport
+        description: MCP transport, for example streamable-http.
+  access:
+    name: Access and tool settings
+    description: Optional tool selection and access restrictions.
+    fields:
+      tools:
+        name: Tools filter
+        description: Comma-separated tool groups, for example gmail,drive,calendar.
+      read_only:
+        name: Read-only mode
+        description: Restrict operations to read-only actions.
+      single_user:
+        name: Single-user mode
+        description: Limit server usage to one user context.
+      permissions:
+        name: Permissions
+        description: Permission list, for example gmail:organize drive:readonly.
+      allowed_file_dirs:
+        name: Allowed file directories
+        description: Comma-separated allowed directories for disk tools.

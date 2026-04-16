@@ -13,18 +13,60 @@ auth_client_id="$(bashio::config 'google_oauth_client_id')"
 auth_client_secret="$(bashio::config 'google_oauth_client_secret')"
 credentials_file="$(bashio::config 'google_client_secret_path')"
 user_google_email="$(bashio::config 'user_google_email')"
-external_url="$(bashio::config 'workspace_external_url')"
-redirect_uri="$(bashio::config 'google_oauth_redirect_uri')"
-custom_redirect_uris="$(bashio::config 'oauth_custom_redirect_uris')"
-allowed_origins="$(bashio::config 'oauth_allowed_origins')"
-jwt_signing_key="$(bashio::config 'fastmcp_server_auth_google_jwt_signing_key')"
-transport="$(bashio::config 'transport')"
 tool_tier="$(bashio::config 'tool_tier')"
-selected_tools="$(bashio::config 'tools')"
-permissions_raw="$(bashio::config 'permissions')"
-allowed_file_dirs="$(bashio::config 'allowed_file_dirs')"
-port="$(bashio::config 'workspace_mcp_port')"
-host="$(bashio::config 'workspace_mcp_host')"
+
+# Prefer flattened top-level groups and fall back to older advanced/flat keys.
+[[ -z "${credentials_file}" ]] && credentials_file="$(bashio::config 'advanced/oauth/google_client_secret_path')"
+[[ -z "${credentials_file}" ]] && credentials_file="$(bashio::config 'advanced/google_client_secret_path')"
+[[ -z "${credentials_file}" ]] && credentials_file="$(bashio::config 'google_client_secret_path')"
+external_url="$(bashio::config 'mcp_host/workspace_external_url')"
+[[ -z "${external_url}" ]] && external_url="$(bashio::config 'oauth/workspace_external_url')"
+[[ -z "${external_url}" ]] && external_url="$(bashio::config 'advanced/oauth/workspace_external_url')"
+[[ -z "${external_url}" ]] && external_url="$(bashio::config 'advanced/workspace_external_url')"
+[[ -z "${external_url}" ]] && external_url="$(bashio::config 'workspace_external_url')"
+redirect_uri="$(bashio::config 'oauth/google_oauth_redirect_uri')"
+[[ -z "${redirect_uri}" ]] && redirect_uri="$(bashio::config 'advanced/oauth/google_oauth_redirect_uri')"
+[[ -z "${redirect_uri}" ]] && redirect_uri="$(bashio::config 'advanced/google_oauth_redirect_uri')"
+[[ -z "${redirect_uri}" ]] && redirect_uri="$(bashio::config 'google_oauth_redirect_uri')"
+custom_redirect_uris="$(bashio::config 'oauth/oauth_custom_redirect_uris')"
+[[ -z "${custom_redirect_uris}" ]] && custom_redirect_uris="$(bashio::config 'advanced/oauth/oauth_custom_redirect_uris')"
+[[ -z "${custom_redirect_uris}" ]] && custom_redirect_uris="$(bashio::config 'advanced/oauth_custom_redirect_uris')"
+[[ -z "${custom_redirect_uris}" ]] && custom_redirect_uris="$(bashio::config 'oauth_custom_redirect_uris')"
+allowed_origins="$(bashio::config 'oauth/oauth_allowed_origins')"
+[[ -z "${allowed_origins}" ]] && allowed_origins="$(bashio::config 'advanced/oauth/oauth_allowed_origins')"
+[[ -z "${allowed_origins}" ]] && allowed_origins="$(bashio::config 'advanced/oauth_allowed_origins')"
+[[ -z "${allowed_origins}" ]] && allowed_origins="$(bashio::config 'oauth_allowed_origins')"
+jwt_signing_key="$(bashio::config 'oauth/fastmcp_server_auth_google_jwt_signing_key')"
+[[ -z "${jwt_signing_key}" ]] && jwt_signing_key="$(bashio::config 'advanced/oauth/fastmcp_server_auth_google_jwt_signing_key')"
+[[ -z "${jwt_signing_key}" ]] && jwt_signing_key="$(bashio::config 'advanced/fastmcp_server_auth_google_jwt_signing_key')"
+[[ -z "${jwt_signing_key}" ]] && jwt_signing_key="$(bashio::config 'fastmcp_server_auth_google_jwt_signing_key')"
+transport="$(bashio::config 'mcp_host/transport')"
+[[ -z "${transport}" ]] && transport="$(bashio::config 'advanced/mcp_host/transport')"
+[[ -z "${transport}" ]] && transport="$(bashio::config 'advanced/server/transport')"
+[[ -z "${transport}" ]] && transport="$(bashio::config 'advanced/transport')"
+[[ -z "${transport}" ]] && transport="$(bashio::config 'transport')"
+selected_tools="$(bashio::config 'access/tools')"
+[[ -z "${selected_tools}" ]] && selected_tools="$(bashio::config 'advanced/access/tools')"
+[[ -z "${selected_tools}" ]] && selected_tools="$(bashio::config 'advanced/tools')"
+[[ -z "${selected_tools}" ]] && selected_tools="$(bashio::config 'tools')"
+permissions_raw="$(bashio::config 'access/permissions')"
+[[ -z "${permissions_raw}" ]] && permissions_raw="$(bashio::config 'advanced/access/permissions')"
+[[ -z "${permissions_raw}" ]] && permissions_raw="$(bashio::config 'advanced/permissions')"
+[[ -z "${permissions_raw}" ]] && permissions_raw="$(bashio::config 'permissions')"
+allowed_file_dirs="$(bashio::config 'access/allowed_file_dirs')"
+[[ -z "${allowed_file_dirs}" ]] && allowed_file_dirs="$(bashio::config 'advanced/access/allowed_file_dirs')"
+[[ -z "${allowed_file_dirs}" ]] && allowed_file_dirs="$(bashio::config 'advanced/allowed_file_dirs')"
+[[ -z "${allowed_file_dirs}" ]] && allowed_file_dirs="$(bashio::config 'allowed_file_dirs')"
+port="$(bashio::config 'mcp_host/workspace_mcp_port')"
+[[ -z "${port}" ]] && port="$(bashio::config 'advanced/mcp_host/workspace_mcp_port')"
+[[ -z "${port}" ]] && port="$(bashio::config 'advanced/server/workspace_mcp_port')"
+[[ -z "${port}" ]] && port="$(bashio::config 'advanced/workspace_mcp_port')"
+[[ -z "${port}" ]] && port="$(bashio::config 'workspace_mcp_port')"
+host="$(bashio::config 'mcp_host/workspace_mcp_host')"
+[[ -z "${host}" ]] && host="$(bashio::config 'advanced/mcp_host/workspace_mcp_host')"
+[[ -z "${host}" ]] && host="$(bashio::config 'advanced/server/workspace_mcp_host')"
+[[ -z "${host}" ]] && host="$(bashio::config 'advanced/workspace_mcp_host')"
+[[ -z "${host}" ]] && host="$(bashio::config 'workspace_mcp_host')"
 
 [[ -z "${transport}" ]] && transport="streamable-http"
 [[ -z "${host}" ]] && host="0.0.0.0"
@@ -47,16 +89,16 @@ export ALLOWED_FILE_DIRS="${allowed_file_dirs}"
 [[ -n "${allowed_origins}" ]] && export OAUTH_ALLOWED_ORIGINS="${allowed_origins}"
 [[ -n "${jwt_signing_key}" ]] && export FASTMCP_SERVER_AUTH_GOOGLE_JWT_SIGNING_KEY="${jwt_signing_key}"
 
-if bashio::config.true 'oauthlib_insecure_transport'; then
+if bashio::config.true 'oauth/oauthlib_insecure_transport' || bashio::config.true 'advanced/oauth/oauthlib_insecure_transport' || bashio::config.true 'advanced/oauthlib_insecure_transport' || bashio::config.true 'oauthlib_insecure_transport'; then
     export OAUTHLIB_INSECURE_TRANSPORT=1
 fi
-if bashio::config.true 'mcp_enable_oauth21'; then
+if bashio::config.true 'oauth/mcp_enable_oauth21' || bashio::config.true 'advanced/oauth/mcp_enable_oauth21' || bashio::config.true 'advanced/mcp_enable_oauth21' || bashio::config.true 'mcp_enable_oauth21'; then
     export MCP_ENABLE_OAUTH21=true
 fi
-if bashio::config.true 'external_oauth21_provider'; then
+if bashio::config.true 'oauth/external_oauth21_provider' || bashio::config.true 'advanced/oauth/external_oauth21_provider' || bashio::config.true 'advanced/external_oauth21_provider' || bashio::config.true 'external_oauth21_provider'; then
     export EXTERNAL_OAUTH21_PROVIDER=true
 fi
-if bashio::config.true 'workspace_mcp_stateless_mode'; then
+if bashio::config.true 'mcp_host/workspace_mcp_stateless_mode' || bashio::config.true 'advanced/mcp_host/workspace_mcp_stateless_mode' || bashio::config.true 'advanced/server/workspace_mcp_stateless_mode' || bashio::config.true 'advanced/workspace_mcp_stateless_mode' || bashio::config.true 'workspace_mcp_stateless_mode'; then
     export WORKSPACE_MCP_STATELESS_MODE=true
 fi
 
@@ -82,10 +124,10 @@ if [[ -n "${permissions_raw}" ]]; then
     fi
 fi
 
-if bashio::config.true 'read_only'; then
+if bashio::config.true 'access/read_only' || bashio::config.true 'advanced/access/read_only' || bashio::config.true 'advanced/read_only' || bashio::config.true 'read_only'; then
     cmd+=(--read-only)
 fi
-if bashio::config.true 'single_user'; then
+if bashio::config.true 'access/single_user' || bashio::config.true 'advanced/access/single_user' || bashio::config.true 'advanced/single_user' || bashio::config.true 'single_user'; then
     cmd+=(--single-user)
 fi
 
