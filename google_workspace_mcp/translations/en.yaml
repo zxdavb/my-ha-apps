@@ -11,6 +11,9 @@ configuration:
   user_google_email:
     name: User Google email
     description: Optional account to scope operations to a specific user.
+  workspace_external_url:
+    name: External URL
+    description: Optional public URL used in OAuth flows.
   tool_tier:
     name: Tool tier
     description: Choose core, extended, or complete.
@@ -39,9 +42,6 @@ configuration:
       oauth_allowed_origins:
         name: Allowed origins
         description: Optional comma-separated list of CORS origins.
-      workspace_external_url:
-        name: External URL
-        description: Optional public URL used in OAuth flows.
   mcp_host:
     name: MCP host settings
     description: Optional MCP listener and runtime settings.
