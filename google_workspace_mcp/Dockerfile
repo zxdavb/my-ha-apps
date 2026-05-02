@@ -2,12 +2,12 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/base:3.23
 FROM ${BUILD_FROM}
 
-ARG WORKSPACE_MCP_VERSION=1.19.0
+COPY requirements.txt /tmp/requirements.txt
 
 RUN apk add --no-cache python3 py3-pip \
     && python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
-    && /opt/venv/bin/pip install --no-cache-dir "workspace-mcp[disk]==${WORKSPACE_MCP_VERSION}"
+    && /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt
 
 ENV PATH="/opt/venv/bin:${PATH}"
 

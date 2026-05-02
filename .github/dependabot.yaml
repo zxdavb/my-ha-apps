@@ -1,5 +1,11 @@
 version: 2
 updates:
+  - package-ecosystem: "pip"
+    directory: "/google_workspace_mcp"
+    schedule:
+      interval: weekly
+      time: "06:00"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
