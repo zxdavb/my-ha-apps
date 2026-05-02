@@ -9,6 +9,21 @@ declare -a cmd
 declare -a tools
 declare -a permissions
 
+normalize_optional() {
+    local value="$1"
+    local lowered
+    lowered="$(echo "${value}" | tr '[:upper:]' '[:lower:]')"
+
+    case "${lowered}" in
+        ""|"null"|"none")
+            echo ""
+            ;;
+        *)
+            echo "${value}"
+            ;;
+    esac
+}
+
 auth_client_id="$(bashio::config 'google_oauth_client_id')"
 auth_client_secret="$(bashio::config 'google_oauth_client_secret')"
 credentials_file="$(bashio::config 'google_client_secret_path')"
@@ -96,6 +111,27 @@ oauth_storage_backend="$(bashio::config 'oauth21.workspace_mcp_oauth_proxy_stora
 allowed_client_redirect_uris="$(bashio::config 'oauth21.workspace_mcp_allowed_client_redirect_uris')"
 [[ -z "${allowed_client_redirect_uris}" ]] && allowed_client_redirect_uris="$(bashio::config 'advanced.oauth.workspace_mcp_allowed_client_redirect_uris')"
 [[ -z "${allowed_client_redirect_uris}" ]] && allowed_client_redirect_uris="$(bashio::config 'workspace_mcp_allowed_client_redirect_uris')"
+
+auth_client_id="$(normalize_optional "${auth_client_id}")"
+auth_client_secret="$(normalize_optional "${auth_client_secret}")"
+credentials_file="$(normalize_optional "${credentials_file}")"
+user_google_email="$(normalize_optional "${user_google_email}")"
+tool_tier="$(normalize_optional "${tool_tier}")"
+credentials_dir="$(normalize_optional "${credentials_dir}")"
+base_uri="$(normalize_optional "${base_uri}")"
+external_url="$(normalize_optional "${external_url}")"
+redirect_uri="$(normalize_optional "${redirect_uri}")"
+custom_redirect_uris="$(normalize_optional "${custom_redirect_uris}")"
+allowed_origins="$(normalize_optional "${allowed_origins}")"
+jwt_signing_key="$(normalize_optional "${jwt_signing_key}")"
+transport="$(normalize_optional "${transport}")"
+selected_tools="$(normalize_optional "${selected_tools}")"
+permissions_raw="$(normalize_optional "${permissions_raw}")"
+allowed_file_dirs="$(normalize_optional "${allowed_file_dirs}")"
+port="$(normalize_optional "${port}")"
+host="$(normalize_optional "${host}")"
+oauth_storage_backend="$(normalize_optional "${oauth_storage_backend}")"
+allowed_client_redirect_uris="$(normalize_optional "${allowed_client_redirect_uris}")"
 
 [[ -z "${transport}" ]] && transport="streamable-http"
 [[ -z "${host}" ]] && host="0.0.0.0"

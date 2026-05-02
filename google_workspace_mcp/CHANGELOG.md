@@ -1,3 +1,7 @@
+## 0.1.9
+
+- Normalize `null`/`None` config values in startup script so host/port/transport defaults are applied correctly.
+
 ## 0.1.8
 
 - Bump app version.
