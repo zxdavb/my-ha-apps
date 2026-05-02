@@ -1,3 +1,7 @@
+## 0.1.8
+
+- Bump app version.
+
 ## 0.1.7
 
 - Default to all Workspace services (no explicit tool allowlist).
