@@ -43,9 +43,18 @@ jobs:
 
           # If the workflow file itself changed, rebuild all apps
           if [[ "${CHANGED_FILES}" =~ \.github/workflows/(builder|build-app)\.yaml ]]; then
-            changed_apps=(${APPS})
+            for app in ${APPS}; do
+              # Only queue Dockerfile-based apps for reusable image build workflow.
+              if [[ -f "${app}/Dockerfile" ]]; then
+                changed_apps+=("${app}")
+              fi
+            done
           else
             for app in ${APPS}; do
+              # External-image wrappers (no Dockerfile) are handled outside this build path.
+              if [[ ! -f "${app}/Dockerfile" ]]; then
+                continue
+              fi
               for file in ${MONITORED_FILES}; do
                 if [[ "${CHANGED_FILES}" =~ ${app}/${file} ]]; then
                   changed_apps+=("${app}")

@@ -43,10 +43,8 @@ jobs:
             image_name="${{ inputs.app }}"
             registry_prefix="ghcr.io/${owner}"
           else
-            image_base="${image%%@*}"
-            image_base="${image_base%:*}"
-            image_name="${image_base##*/}"
-            registry_prefix="${image_base%/*}"
+            image_name="${image##*/}"
+            registry_prefix="${image%/*}"
           fi
           echo "image_name=${image_name}" >> "$GITHUB_OUTPUT"
           echo "registry_prefix=${registry_prefix}" >> "$GITHUB_OUTPUT"

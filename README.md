@@ -7,6 +7,8 @@ This repository contains local Home Assistant apps that wrap upstream server pro
 
 [![Open your Home Assistant instance and show the app store with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_store.svg)](https://my.home-assistant.io/redirect/supervisor_store/?repository_url=https%3A%2F%2Fgithub.com%2Fzxdavb%2Fmy-ha-apps)
 
+Workflow source note: when syncing CI workflows, use `zxdavb/my-ha-apps` as the source of truth (not `home-assistant/apps-example`) to preserve local builder normalization behavior.
+
 ## Apps
 
 This repository contains the following apps

@@ -58,3 +58,9 @@ Use these rules when modifying this repository:
 13. Runtime option compatibility
    - Do not remove or rename existing app options in `config.yaml` without an explicit migration note in docs/changelog.
    - If option behavior changes, update `DOCS.md` examples in the same PR.
+
+14. Builder workflow image normalization
+   - Keep the missing/null image fallback in `.github/workflows/build-app.yaml` so apps without an `image` field do not produce `null/amd64-null` targets.
+   - Keep non-Dockerfile app filtering in `.github/workflows/builder.yaml` so external-image wrappers are not sent to the reusable build workflow.
+   - Prefer caller-side filtering in `builder.yaml` over adding app-specific branching in `build-app.yaml` to minimize divergence from upstream reusable workflow code.
+   - If workflows are synced from another repository and this logic is lost, re-apply it before merging.
