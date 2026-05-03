@@ -1,0 +1,60 @@
+# Copilot Repository Rules
+
+Use these rules when modifying this repository:
+
+1. Target architecture is amd64 only.
+   - In app `config.yaml`, keep only `arch: [amd64]`.
+   - Do not add `aarch64` back unless explicitly requested.
+
+2. Keep each app independent from intermediary add-on repos.
+   - Point app `url` and sources directly to upstream server projects.
+   - Avoid references to third-party wrapper repositories when a direct upstream exists.
+
+3. Keep one upstream-update workflow per app.
+   - `.github/workflows/upstream-update-google-workspace-mcp.yaml`
+   - `.github/workflows/upstream-update-rustdesk-server.yaml`
+   - `.github/workflows/upstream-update-guacamole.yaml`
+
+4. Version format for maintained apps is `upstream-haN`.
+   - Example: `1.6.0-ha1`.
+   - For local packaging-only changes, increment `haN`.
+
+5. License policy
+   - This repository is MIT licensed.
+   - Keep MIT mention in README files.
+   - Keep upstream license note in app READMEs.
+
+6. CI workflow safety
+   - In `.github/workflows/build-app.yaml`, do not leave example-repo guards in place.
+   - Keep `if: github.repository == 'zxdavb/my-ha-apps'` (or remove the guard) so CI is not skipped.
+   - Keep build-app reusable via `workflow_call` and use app-specific workflows as entrypoints.
+
+7. Source-of-truth consistency
+   - When bumping a version, keep these in sync for that app: `config.yaml` version, build source version (Dockerfile/image tag/requirements), and CHANGELOG.
+   - Keep upstream project links consistent between app `config.yaml` (`url`) and app `README.md` upstream section.
+
+8. Guacamole intermediary policy
+   - Treat `abesnier/docker-guacamole` as a load-bearing intermediary for the HA wrapper.
+   - Do not switch Guacamole to direct Apache Guacamole containers unless explicitly requested.
+   - When bumping Guacamole, run a quick smoke test: startup succeeds, ingress works, DB initializes, and configured extension behavior still works.
+
+9. Wrapper references in app READMEs
+   - Keep a `Wrapper references` section in each app README.
+   - List intermediary/template repositories used during wrapper creation, or explicitly state when no intermediary is used.
+
+10. PR and commit scope hygiene
+   - Upstream bump PRs should modify one app only unless explicitly requested.
+   - Avoid mixed changes in one PR (for example: app version bump + unrelated workflow refactor).
+   - Keep commit messages explicit: `<app>: bump to <version>` or `<app>: packaging fix`.
+
+11. Changelog discipline
+   - For app changes, add a top entry in that app `CHANGELOG.md` before merging.
+   - Keep entries short and explicit about whether the change is upstream bump, packaging fix, or docs-only.
+
+12. Release-tag behavior
+   - Use app-specific tag prefixes for publish workflows and avoid broad tags that could trigger wrong app releases.
+   - Validate that each app release workflow only targets its own app path and tag prefix.
+
+13. Runtime option compatibility
+   - Do not remove or rename existing app options in `config.yaml` without an explicit migration note in docs/changelog.
+   - If option behavior changes, update `DOCS.md` examples in the same PR.

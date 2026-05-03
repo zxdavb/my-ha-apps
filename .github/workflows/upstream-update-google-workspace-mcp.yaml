@@ -1,0 +1,113 @@
+name: Upstream Update - google_workspace_mcp
+
+on:
+  schedule:
+    - cron: "20 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: upstream-update-google-workspace-mcp
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Check Workspace MCP upstream release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Update Google Workspace MCP from upstream
+        id: updater
+        run: |
+          python3 <<'PY'
+          import json
+          import pathlib
+          import re
+          import urllib.request
+
+          root = pathlib.Path('.')
+
+          def get_json(url):
+              with urllib.request.urlopen(url, timeout=30) as resp:
+                  return json.load(resp)
+
+          def read_first(path, pattern):
+              text = path.read_text(encoding='utf-8')
+              m = re.search(pattern, text, flags=re.MULTILINE)
+              if not m:
+                  raise RuntimeError(f"Pattern not found in {path}: {pattern}")
+              return m.group(1)
+
+          def replace_one(path, pattern, replacement):
+              text = path.read_text(encoding='utf-8')
+              new_text, count = re.subn(pattern, replacement, text, flags=re.MULTILINE)
+              if count == 0:
+                  raise RuntimeError(f"Pattern not found in {path}: {pattern}")
+              if new_text != text:
+                  path.write_text(new_text, encoding='utf-8')
+                  return True
+              return False
+
+          def version_for_upstream(current, upstream):
+              m = re.match(rf'^{re.escape(upstream)}-ha(\d+)$', current)
+              if m:
+                  return f"{upstream}-ha{int(m.group(1)) + 1}"
+              return f"{upstream}-ha1"
+
+          latest = get_json("https://pypi.org/pypi/workspace-mcp/json")["info"]["version"]
+
+          req = root / "google_workspace_mcp" / "requirements.txt"
+          current_upstream = read_first(req, r'^workspace-mcp\[disk\]==([^\s]+)$')
+
+          if current_upstream != latest:
+              replace_one(
+                  req,
+                  r'^workspace-mcp\[disk\]==[^\s]+$',
+                  f'workspace-mcp[disk]=={latest}'
+              )
+
+              config = root / "google_workspace_mcp" / "config.yaml"
+              current_version = read_first(config, r'^version:\s+"([^"]+)"$')
+              next_version = version_for_upstream(current_version, latest)
+              replace_one(
+                  config,
+                  r'^version:\s+"[^"]+"$',
+                  f'version: "{next_version}"'
+              )
+
+              summary = (
+                  f"- google_workspace_mcp upstream: {current_upstream} -> {latest}\n"
+                  f"- app version: {current_version} -> {next_version}\n"
+              )
+          else:
+              summary = "No updates available.\n"
+
+          pathlib.Path('/tmp/upstream-update-summary.txt').write_text(summary, encoding='utf-8')
+          print(summary)
+          PY
+
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Show update summary
+        run: cat /tmp/upstream-update-summary.txt
+
+      - name: Create pull request
+        if: steps.updater.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/upstream-google-workspace-mcp-updates
+          commit-message: "chore(google_workspace_mcp): update upstream version"
+          title: "chore(google_workspace_mcp): update upstream version"
+          body-path: /tmp/upstream-update-summary.txt
+          labels: |
+            dependencies
+            automated pr

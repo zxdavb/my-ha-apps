@@ -1,11 +1,10 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
 name: Google Workspace MCP
-version: "0.1.9"
+version: "1.20.3-ha0"
 slug: google_workspace_mcp
 description: Google Workspace MCP app for Home Assistant
-url: "https://github.com/zxdavb/my-ha-apps/tree/main/google_workspace_mcp"
+url: "https://github.com/taylorwilsdon/google_workspace_mcp"
 arch:
-  - aarch64
   - amd64
 init: false
 apparmor: false

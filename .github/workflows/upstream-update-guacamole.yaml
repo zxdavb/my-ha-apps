@@ -1,0 +1,125 @@
+name: Upstream Update - guacamole
+
+on:
+  schedule:
+    - cron: "30 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: upstream-update-guacamole
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Check Guacamole upstream image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Update Guacamole image from upstream
+        id: updater
+        run: |
+          python3 <<'PY'
+          import json
+          import pathlib
+          import re
+          import urllib.request
+
+          root = pathlib.Path('.')
+
+          def get_json(url):
+              with urllib.request.urlopen(url, timeout=30) as resp:
+                  return json.load(resp)
+
+          def read_first(path, pattern):
+              text = path.read_text(encoding='utf-8')
+              m = re.search(pattern, text, flags=re.MULTILINE)
+              if not m:
+                  raise RuntimeError(f"Pattern not found in {path}: {pattern}")
+              return m.group(1)
+
+          def replace_one(path, pattern, replacement):
+              text = path.read_text(encoding='utf-8')
+              new_text, count = re.subn(pattern, replacement, text, flags=re.MULTILINE)
+              if count == 0:
+                  raise RuntimeError(f"Pattern not found in {path}: {pattern}")
+              if new_text != text:
+                  path.write_text(new_text, encoding='utf-8')
+                  return True
+              return False
+
+          def version_for_upstream(current, upstream):
+              m = re.match(rf'^{re.escape(upstream)}-ha(\d+)$', current)
+              if m:
+                  return f"{upstream}-ha{int(m.group(1)) + 1}"
+              return f"{upstream}-ha1"
+
+          tags = get_json(
+              "https://hub.docker.com/v2/repositories/abesnier/guacamole/tags?page_size=100"
+          )
+
+          candidates = []
+          for result in tags.get("results", []):
+              tag = result.get("name", "")
+              if re.match(r'^\d+\.\d+\.\d+$', tag):
+                  parts = tuple(int(x) for x in tag.split('.'))
+                  candidates.append((parts, tag))
+          if not candidates:
+              raise RuntimeError("No stable semver tags found for abesnier/guacamole")
+
+          latest = sorted(candidates)[-1][1]
+
+          config = root / "guacamole" / "config.yaml"
+          current_upstream = read_first(config, r'^image:\s+abesnier/guacamole:([^\s]+)$')
+
+          if current_upstream != latest:
+              replace_one(
+                  config,
+                  r'^image:\s+abesnier/guacamole:[^\s]+$',
+                  f'image: abesnier/guacamole:{latest}'
+              )
+
+              current_version = read_first(config, r'^version:\s+"([^"]+)"$')
+              next_version = version_for_upstream(current_version, latest)
+              replace_one(
+                  config,
+                  r'^version:\s+"[^"]+"$',
+                  f'version: "{next_version}"'
+              )
+
+              summary = (
+                  f"- guacamole upstream: {current_upstream} -> {latest}\n"
+                  f"- app version: {current_version} -> {next_version}\n"
+              )
+          else:
+              summary = "No updates available.\n"
+
+          pathlib.Path('/tmp/upstream-update-summary.txt').write_text(summary, encoding='utf-8')
+          print(summary)
+          PY
+
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Show update summary
+        run: cat /tmp/upstream-update-summary.txt
+
+      - name: Create pull request
+        if: steps.updater.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/upstream-guacamole-updates
+          commit-message: "chore(guacamole): update upstream version"
+          title: "chore(guacamole): update upstream version"
+          body-path: /tmp/upstream-update-summary.txt
+          labels: |
+            dependencies
+            automated pr

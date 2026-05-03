@@ -1,0 +1,15 @@
+configuration:
+  env_vars:
+    name: Extra environment variables
+    description: Optional list of additional environment variables.
+  EXTENSIONS:
+    name: Guacamole extensions
+    description: Comma-separated extensions, for example auth-totp.
+  recording_search_path:
+    name: Recording search path
+    description: Path used by Guacamole history recording storage.
+  TZ:
+    name: Timezone
+    description: Optional timezone, for example Europe/London.
+network:
+  8080/tcp: Guacamole web interface

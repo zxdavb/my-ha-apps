@@ -1,0 +1,145 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Start RustDesk server processes (hbbs + hbbr)
+# ==============================================================================
+
+set -euo pipefail
+
+declare private_key
+declare public_key
+declare relay
+declare -a common_args
+declare -a hbbs_args
+declare hbbr_pid
+declare hbbs_pid
+declare key_log_pid
+declare wait_for_generated_key
+
+log_public_key() {
+    local key
+
+    key="$(tr -d '\r\n' < /config/id_ed25519.pub)"
+    if [[ -n "${key}" ]]; then
+        bashio::log.info "RustDesk public key: ${key}"
+    fi
+}
+
+announce_public_key_when_ready() {
+    local -i retries
+
+    retries=30
+    while (( retries > 0 )); do
+        if [[ -s /config/id_ed25519.pub ]]; then
+            log_public_key
+            return
+        fi
+        ((retries--))
+        sleep 1
+    done
+
+    bashio::log.warning "RustDesk public key was not generated within 30s. Check logs again shortly."
+}
+
+cleanup() {
+    kill "${key_log_pid:-}" "${hbbs_pid:-}" "${hbbr_pid:-}" 2>/dev/null || true
+}
+
+trap cleanup EXIT INT TERM
+
+mkdir -p /config
+cd /config
+wait_for_generated_key="false"
+
+private_key="$(bashio::config 'private_key')"
+public_key="$(bashio::config 'public_key')"
+relay="$(bashio::config 'relay')"
+
+# If options supply only one half of the keypair, fail fast.
+if [[ -n "${private_key}" && -z "${public_key}" ]]; then
+    bashio::log.fatal "private_key is set but public_key is empty. Provide both or neither."
+    bashio::exit.nok
+fi
+
+if [[ -z "${private_key}" && -n "${public_key}" ]]; then
+    bashio::log.fatal "public_key is set but private_key is empty. Provide both or neither."
+    bashio::exit.nok
+fi
+
+if [[ -n "${private_key}" && -n "${public_key}" ]]; then
+    if [[ -f /config/id_ed25519 ]] && [[ "$(cat /config/id_ed25519)" != "${private_key}" ]]; then
+        bashio::log.fatal "Configured private_key does not match /config/id_ed25519"
+        bashio::exit.nok
+    fi
+
+    if [[ -f /config/id_ed25519.pub ]] && [[ "$(cat /config/id_ed25519.pub)" != "${public_key}" ]]; then
+        bashio::log.fatal "Configured public_key does not match /config/id_ed25519.pub"
+        bashio::exit.nok
+    fi
+
+    printf '%s' "${private_key}" > /config/id_ed25519
+    printf '%s' "${public_key}" > /config/id_ed25519.pub
+fi
+
+if [[ -f /config/id_ed25519 && ! -f /config/id_ed25519.pub ]]; then
+    bashio::log.fatal "Missing /config/id_ed25519.pub. Provide both key files."
+    bashio::exit.nok
+fi
+
+if [[ ! -f /config/id_ed25519 && -f /config/id_ed25519.pub ]]; then
+    bashio::log.fatal "Missing /config/id_ed25519. Provide both key files."
+    bashio::exit.nok
+fi
+
+if [[ -f /config/id_ed25519 && -f /config/id_ed25519.pub ]]; then
+    chmod 0600 /config/id_ed25519 /config/id_ed25519.pub
+    if ! /opt/rustdesk-server/rustdesk-utils validatekeypair "$(cat /config/id_ed25519.pub)" "$(cat /config/id_ed25519)"; then
+        bashio::log.fatal "The keypair in /config is invalid."
+        bashio::exit.nok
+    fi
+    bashio::log.info "Using existing RustDesk keypair from /config."
+    log_public_key
+else
+    bashio::log.info "No keypair supplied; hbbs will generate one on first start."
+    wait_for_generated_key="true"
+fi
+
+common_args=()
+hbbs_args=()
+
+if bashio::config.true 'encrypted_only'; then
+    common_args+=("-k" "_")
+fi
+
+if [[ -n "${relay}" ]]; then
+    hbbs_args+=("-r" "${relay}")
+fi
+
+bashio::log.info "Starting RustDesk relay (hbbr)."
+/opt/rustdesk-server/hbbr "${common_args[@]}" &
+hbbr_pid=$!
+
+bashio::log.info "Starting RustDesk ID server (hbbs)."
+/opt/rustdesk-server/hbbs "${common_args[@]}" "${hbbs_args[@]}" &
+hbbs_pid=$!
+
+if [[ "${wait_for_generated_key}" == "true" ]]; then
+    announce_public_key_when_ready &
+    key_log_pid=$!
+fi
+
+wait -n "${hbbr_pid}" "${hbbs_pid}"
+exit_code=$?
+
+if ! kill -0 "${hbbs_pid}" 2>/dev/null; then
+    bashio::log.error "hbbs exited. Stopping hbbr."
+fi
+
+if ! kill -0 "${hbbr_pid}" 2>/dev/null; then
+    bashio::log.error "hbbr exited. Stopping hbbs."
+fi
+
+kill "${hbbs_pid}" "${hbbr_pid}" 2>/dev/null || true
+wait "${hbbs_pid}" "${hbbr_pid}" 2>/dev/null || true
+
+exit "${exit_code}"

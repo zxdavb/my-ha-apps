@@ -1,0 +1,113 @@
+name: Upstream Update - rustdesk-server
+
+on:
+  schedule:
+    - cron: "10 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: upstream-update-rustdesk-server
+  cancel-in-progress: true
+
+jobs:
+  update:
+    name: Check RustDesk upstream release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Update RustDesk sources from upstream
+        id: updater
+        run: |
+          python3 <<'PY'
+          import json
+          import pathlib
+          import re
+          import urllib.request
+
+          root = pathlib.Path('.')
+
+          def get_json(url):
+              with urllib.request.urlopen(url, timeout=30) as resp:
+                  return json.load(resp)
+
+          def read_first(path, pattern):
+              text = path.read_text(encoding='utf-8')
+              m = re.search(pattern, text, flags=re.MULTILINE)
+              if not m:
+                  raise RuntimeError(f"Pattern not found in {path}: {pattern}")
+              return m.group(1)
+
+          def replace_one(path, pattern, replacement):
+              text = path.read_text(encoding='utf-8')
+              new_text, count = re.subn(pattern, replacement, text, flags=re.MULTILINE)
+              if count == 0:
+                  raise RuntimeError(f"Pattern not found in {path}: {pattern}")
+              if new_text != text:
+                  path.write_text(new_text, encoding='utf-8')
+                  return True
+              return False
+
+          def version_for_upstream(current, upstream):
+              m = re.match(rf'^{re.escape(upstream)}-ha(\d+)$', current)
+              if m:
+                  return f"{upstream}-ha{int(m.group(1)) + 1}"
+              return f"{upstream}-ha1"
+
+          latest = get_json("https://api.github.com/repos/rustdesk/rustdesk-server/releases/latest")["tag_name"]
+
+          dockerfile = root / "rustdesk-server" / "Dockerfile"
+          current_upstream = read_first(dockerfile, r'^ARG RUSTDESK_SERVER_VERSION=([^\s]+)$')
+
+          if current_upstream != latest:
+              replace_one(
+                  dockerfile,
+                  r'^ARG RUSTDESK_SERVER_VERSION=[^\s]+$',
+                  f'ARG RUSTDESK_SERVER_VERSION={latest}'
+              )
+
+              config = root / "rustdesk-server" / "config.yaml"
+              current_version = read_first(config, r'^version:\s+"([^"]+)"$')
+              next_version = version_for_upstream(current_version, latest)
+              replace_one(
+                  config,
+                  r'^version:\s+"[^"]+"$',
+                  f'version: "{next_version}"'
+              )
+
+              summary = (
+                  f"- rustdesk-server upstream: {current_upstream} -> {latest}\n"
+                  f"- app version: {current_version} -> {next_version}\n"
+              )
+          else:
+              summary = "No updates available.\n"
+
+          pathlib.Path('/tmp/upstream-update-summary.txt').write_text(summary, encoding='utf-8')
+          print(summary)
+          PY
+
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Show update summary
+        run: cat /tmp/upstream-update-summary.txt
+
+      - name: Create pull request
+        if: steps.updater.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: chore/upstream-rustdesk-server-updates
+          commit-message: "chore(rustdesk-server): update upstream version"
+          title: "chore(rustdesk-server): update upstream version"
+          body-path: /tmp/upstream-update-summary.txt
+          labels: |
+            dependencies
+            automated pr

@@ -1,0 +1,21 @@
+configuration:
+  encrypted_only:
+    name: Encrypted clients only
+    description: Require RustDesk clients to use the server key.
+  relay:
+    name: Relay host
+    description: Optional hostname or IP for hbbr, such as rustdesk.example.com.
+  private_key:
+    name: Private key
+    description: Optional base64 private key. Must be paired with public key.
+  public_key:
+    name: Public key
+    description: Optional base64 public key. Must be paired with private key.
+network:
+  21114/tcp: hbbs web console or API (optional)
+  21115/tcp: hbbs NAT test and status (required)
+  21116/tcp: hbbs TCP hole punching (required)
+  21116/udp: hbbs heartbeat and registration (required)
+  21117/tcp: hbbr relay service (required)
+  21118/tcp: hbbs web client support (optional)
+  21119/tcp: hbbr web client support (optional)
