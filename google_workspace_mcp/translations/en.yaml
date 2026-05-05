@@ -5,75 +5,106 @@ configuration:
   google_oauth_client_secret:
     name: Google OAuth Client Secret
     description: Optional client secret for confidential clients.
-  google_client_secret_path:
-    name: Client secret file path
-    description: Optional path to a Google OAuth client secret file.
-  user_google_email:
-    name: User Google email
-    description: Optional account to scope operations to a specific user.
   workspace_external_url:
     name: External URL
     description: Optional public URL used in OAuth flows.
-  tool_tier:
-    name: Tool tier
-    description: Choose core, extended, or complete.
-  oauth:
-    name: OAuth settings
-    description: Optional OAuth behavior and routing settings.
+  authentication:
+    name: Authentication
+    description: OAuth credentials and authentication behavior.
+    fields:
+      oauthlib_insecure_transport:
+        name: Allow insecure OAuth transport
+        description: Enable only for local development over HTTP.
+      google_client_secret_path:
+        name: Client Secret File Path
+        description: Optional path to a Google OAuth client secret file.
+      user_google_email:
+        name: User Google Email
+        description: Optional account to scope operations to a specific user.
+      single_user:
+        name: Single-User Mode
+        description: Run in single-user mode (legacy auth flow).
+  credential_store:
+    name: Credential Store
+    description: Credential persistence settings.
+    fields:
+      workspace_mcp_credentials_dir:
+        name: Credentials Directory
+        description: Directory used to store credentials.
+  server:
+    name: Server
+    description: Listener and transport settings.
+    fields:
+      workspace_mcp_base_uri:
+        name: Base URI
+        description: Base server URI without port.
+      workspace_mcp_host:
+        name: Host
+        description: Host interface for the MCP server.
+      workspace_mcp_port:
+        name: Port
+        description: Port used by the MCP HTTP server.
+      workspace_mcp_transport:
+        name: Transport
+        description: MCP transport mode.
+  tool_selection:
+    name: Tool Selection
+    description: Tool filtering and permissions.
+    fields:
+      workspace_mcp_tools:
+        name: Tools
+        description: Comma-separated service list, for example gmail,drive,calendar.
+      workspace_mcp_tool_tier:
+        name: Tool Tier
+        description: Choose core, extended, or complete.
+      workspace_mcp_read_only:
+        name: Read-only mode
+        description: Restrict operations to read-only actions.
+      workspace_mcp_permissions:
+        name: Permissions
+        description: Permission list, for example gmail:organize drive:readonly.
+  oauth21:
+    name: OAuth 2.1 and Multi-User
+    description: OAuth 2.1 behavior and provider settings.
     fields:
       mcp_enable_oauth21:
         name: Enable OAuth 2.1
         description: Enable OAuth 2.1 multi-user support.
+      workspace_mcp_stateless_mode:
+        name: Enable Stateless Mode
+        description: Run in stateless mode (requires OAuth 2.1).
       external_oauth21_provider:
-        name: External OAuth 2.1 provider
+        name: External OAuth 2.1 Provider
         description: Use an external OAuth 2.1 provider.
+      workspace_mcp_oauth_proxy_storage_backend:
+        name: OAuth Proxy Storage Backend
+        description: Storage backend for OAuth state.
       fastmcp_server_auth_google_jwt_signing_key:
-        name: JWT signing key
-        description: Optional JWT signing key for auth.
-      oauthlib_insecure_transport:
-        name: Allow insecure OAuth transport
-        description: Enable only for local development over HTTP.
+        name: JWT Signing Key
+        description: Optional key used by OAuth proxy encryption.
       google_oauth_redirect_uri:
-        name: OAuth redirect URI
+        name: OAuth Redirect URI
         description: Optional redirect URI override.
       oauth_custom_redirect_uris:
-        name: Custom redirect URIs
+        name: Custom Redirect URIs
         description: Optional comma-separated custom redirect URIs.
       oauth_allowed_origins:
-        name: Allowed origins
+        name: Allowed Origins
         description: Optional comma-separated list of CORS origins.
-  mcp_host:
-    name: MCP host settings
-    description: Optional MCP listener and runtime settings.
+      workspace_mcp_allowed_client_redirect_uris:
+        name: Allowed Client Redirect URIs
+        description: Optional allowlist for dynamic client redirect URIs.
+  local_files:
+    name: Local Files
+    description: Local file access controls.
     fields:
-      workspace_mcp_stateless_mode:
-        name: Enable stateless mode
-        description: Run in stateless mode (requires OAuth 2.1).
-      workspace_mcp_host:
-        name: MCP host
-        description: Host interface for the MCP server.
-      workspace_mcp_port:
-        name: MCP port
-        description: Port used by the MCP HTTP server.
-      transport:
-        name: Transport
-        description: MCP transport, for example streamable-http.
-  access:
-    name: Access and tool settings
-    description: Optional tool selection and access restrictions.
-    fields:
-      tools:
-        name: Tools filter
-        description: Comma-separated tool groups, for example gmail,drive,calendar.
-      read_only:
-        name: Read-only mode
-        description: Restrict operations to read-only actions.
-      single_user:
-        name: Single-user mode
-        description: Limit server usage to one user context.
-      permissions:
-        name: Permissions
-        description: Permission list, for example gmail:organize drive:readonly.
       allowed_file_dirs:
-        name: Allowed file directories
+        name: Allowed File Directories
         description: Comma-separated allowed directories for disk tools.
+  access:
+    name: Access (Legacy)
+    description: Backward-compatible legacy access settings.
+    fields:
+      single_user:
+        name: Single-User Mode (Legacy)
+        description: Legacy location for single-user mode.
