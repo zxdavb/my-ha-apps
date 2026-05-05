@@ -26,12 +26,15 @@ normalize_optional() {
 
 auth_client_id="$(bashio::config 'google_oauth_client_id')"
 auth_client_secret="$(bashio::config 'google_oauth_client_secret')"
-credentials_file="$(bashio::config 'google_client_secret_path')"
-user_google_email="$(bashio::config 'user_google_email')"
+credentials_file="$(bashio::config 'authentication.google_client_secret_path')"
+[[ -z "${credentials_file}" ]] && credentials_file="$(bashio::config 'google_client_secret_path')"
+user_google_email="$(bashio::config 'authentication.user_google_email')"
+[[ -z "${user_google_email}" ]] && user_google_email="$(bashio::config 'user_google_email')"
 tool_tier="$(bashio::config 'tool_selection.workspace_mcp_tool_tier')"
 [[ -z "${tool_tier}" ]] && tool_tier="$(bashio::config 'tool_tier')"
 
-credentials_dir="$(bashio::config 'workspace_mcp_credentials_dir')"
+credentials_dir="$(bashio::config 'credential_store.workspace_mcp_credentials_dir')"
+[[ -z "${credentials_dir}" ]] && credentials_dir="$(bashio::config 'workspace_mcp_credentials_dir')"
 [[ -z "${credentials_dir}" ]] && credentials_dir="$(bashio::config 'advanced.workspace_mcp_credentials_dir')"
 
 base_uri="$(bashio::config 'server.workspace_mcp_base_uri')"
@@ -160,7 +163,7 @@ export WORKSPACE_MCP_OAUTH_PROXY_STORAGE_BACKEND="${oauth_storage_backend}"
 [[ -n "${jwt_signing_key}" ]] && export FASTMCP_SERVER_AUTH_GOOGLE_JWT_SIGNING_KEY="${jwt_signing_key}"
 [[ -n "${allowed_client_redirect_uris}" ]] && export WORKSPACE_MCP_ALLOWED_CLIENT_REDIRECT_URIS="${allowed_client_redirect_uris}"
 
-if bashio::config.true 'oauth.oauthlib_insecure_transport' || bashio::config.true 'advanced.oauth.oauthlib_insecure_transport' || bashio::config.true 'advanced.oauthlib_insecure_transport' || bashio::config.true 'oauthlib_insecure_transport'; then
+if bashio::config.true 'authentication.oauthlib_insecure_transport' || bashio::config.true 'oauth.oauthlib_insecure_transport' || bashio::config.true 'advanced.oauth.oauthlib_insecure_transport' || bashio::config.true 'advanced.oauthlib_insecure_transport' || bashio::config.true 'oauthlib_insecure_transport'; then
     export OAUTHLIB_INSECURE_TRANSPORT=1
 fi
 if bashio::config.true 'oauth.mcp_enable_oauth21' || bashio::config.true 'advanced.oauth.mcp_enable_oauth21' || bashio::config.true 'advanced.mcp_enable_oauth21' || bashio::config.true 'mcp_enable_oauth21'; then
@@ -207,7 +210,7 @@ fi
 if bashio::config.true 'tool_selection.workspace_mcp_read_only' || bashio::config.true 'access.read_only' || bashio::config.true 'advanced.access.read_only' || bashio::config.true 'advanced.read_only' || bashio::config.true 'read_only'; then
     cmd+=(--read-only)
 fi
-if bashio::config.true 'access.single_user' || bashio::config.true 'advanced.access.single_user' || bashio::config.true 'advanced.single_user' || bashio::config.true 'single_user'; then
+if bashio::config.true 'authentication.single_user' || bashio::config.true 'access.single_user' || bashio::config.true 'advanced.access.single_user' || bashio::config.true 'advanced.single_user' || bashio::config.true 'single_user'; then
     cmd+=(--single-user)
 fi
 

@@ -15,11 +15,14 @@ ports:
 options:
   google_oauth_client_id: ""
   google_oauth_client_secret: ""
-  oauthlib_insecure_transport: false
-  google_client_secret_path: ""
-  user_google_email: ""
-  workspace_mcp_credentials_dir: "/data/google_workspace_credentials"
   workspace_external_url: "https://hass.example.com"
+  authentication:
+    oauthlib_insecure_transport: false
+    google_client_secret_path: ""
+    user_google_email: ""
+    single_user: false
+  credential_store:
+    workspace_mcp_credentials_dir: "/data/google_workspace_credentials"
   server:
     workspace_mcp_base_uri: "http://localhost"
     workspace_mcp_host: "0.0.0.0"
@@ -47,11 +50,14 @@ options:
 schema:
   google_oauth_client_id: "str"
   google_oauth_client_secret: "password?"
-  oauthlib_insecure_transport: "bool"
-  google_client_secret_path: "str?"
-  user_google_email: "str?"
-  workspace_mcp_credentials_dir: "str?"
   workspace_external_url: "str?"
+  authentication:
+    oauthlib_insecure_transport: "bool"
+    google_client_secret_path: "str?"
+    user_google_email: "str?"
+    single_user: "bool"
+  credential_store:
+    workspace_mcp_credentials_dir: "str?"
   server:
     workspace_mcp_base_uri: "str?"
     workspace_mcp_host: "str"
