@@ -22,6 +22,7 @@ At minimum you usually need:
 - `tool_selection.workspace_mcp_tool_tier`: `core`, `extended`, or `complete`.
 - `oauth21.mcp_enable_oauth21`: Enable OAuth 2.1 mode.
 - `oauth21.workspace_mcp_oauth_proxy_storage_backend`: `disk` for persistent single-server state.
+- `oauth21.workspace_mcp_oauth_proxy_disk_directory`: Directory used when OAuth proxy storage backend is `disk`.
 - `workspace_external_url`: Public URL for reverse proxy deployments.
 
 ## Notes

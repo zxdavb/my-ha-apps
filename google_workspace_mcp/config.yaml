@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
 name: Google Workspace MCP
-version: "1.20.3-ha1"
+version: "1.20.3-ha2"
 slug: google_workspace_mcp
 description: Google Workspace MCP app for Home Assistant
 url: "https://github.com/taylorwilsdon/google_workspace_mcp"
@@ -38,6 +38,7 @@ options:
     workspace_mcp_stateless_mode: false
     external_oauth21_provider: false
     workspace_mcp_oauth_proxy_storage_backend: "disk"
+    workspace_mcp_oauth_proxy_disk_directory: "/data/google_workspace_credentials/oauth-proxy"
     fastmcp_server_auth_google_jwt_signing_key: ""
     google_oauth_redirect_uri: ""
     oauth_custom_redirect_uris: ""
@@ -73,6 +74,7 @@ schema:
     workspace_mcp_stateless_mode: "bool"
     external_oauth21_provider: "bool"
     workspace_mcp_oauth_proxy_storage_backend: "list(memory|disk|valkey)"
+    workspace_mcp_oauth_proxy_disk_directory: "str?"
     fastmcp_server_auth_google_jwt_signing_key: "password?"
     google_oauth_redirect_uri: "str?"
     oauth_custom_redirect_uris: "str?"

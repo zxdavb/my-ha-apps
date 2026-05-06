@@ -111,6 +111,10 @@ oauth_storage_backend="$(bashio::config 'oauth21.workspace_mcp_oauth_proxy_stora
 [[ -z "${oauth_storage_backend}" ]] && oauth_storage_backend="$(bashio::config 'advanced.oauth.workspace_mcp_oauth_proxy_storage_backend')"
 [[ -z "${oauth_storage_backend}" ]] && oauth_storage_backend="$(bashio::config 'workspace_mcp_oauth_proxy_storage_backend')"
 
+oauth_proxy_disk_directory="$(bashio::config 'oauth21.workspace_mcp_oauth_proxy_disk_directory')"
+[[ -z "${oauth_proxy_disk_directory}" ]] && oauth_proxy_disk_directory="$(bashio::config 'advanced.oauth.workspace_mcp_oauth_proxy_disk_directory')"
+[[ -z "${oauth_proxy_disk_directory}" ]] && oauth_proxy_disk_directory="$(bashio::config 'workspace_mcp_oauth_proxy_disk_directory')"
+
 allowed_client_redirect_uris="$(bashio::config 'oauth21.workspace_mcp_allowed_client_redirect_uris')"
 [[ -z "${allowed_client_redirect_uris}" ]] && allowed_client_redirect_uris="$(bashio::config 'advanced.oauth.workspace_mcp_allowed_client_redirect_uris')"
 [[ -z "${allowed_client_redirect_uris}" ]] && allowed_client_redirect_uris="$(bashio::config 'workspace_mcp_allowed_client_redirect_uris')"
@@ -134,6 +138,7 @@ allowed_file_dirs="$(normalize_optional "${allowed_file_dirs}")"
 port="$(normalize_optional "${port}")"
 host="$(normalize_optional "${host}")"
 oauth_storage_backend="$(normalize_optional "${oauth_storage_backend}")"
+oauth_proxy_disk_directory="$(normalize_optional "${oauth_proxy_disk_directory}")"
 allowed_client_redirect_uris="$(normalize_optional "${allowed_client_redirect_uris}")"
 
 [[ -z "${transport}" ]] && transport="streamable-http"
@@ -142,6 +147,11 @@ allowed_client_redirect_uris="$(normalize_optional "${allowed_client_redirect_ur
 [[ -z "${allowed_file_dirs}" ]] && allowed_file_dirs="/share"
 [[ -z "${credentials_dir}" ]] && credentials_dir="/data/google_workspace_credentials"
 [[ -z "${oauth_storage_backend}" ]] && oauth_storage_backend="disk"
+[[ -z "${oauth_proxy_disk_directory}" ]] && oauth_proxy_disk_directory="${credentials_dir}/oauth-proxy"
+
+if [[ "${oauth_storage_backend}" == "disk" ]]; then
+    mkdir -p "${oauth_proxy_disk_directory}"
+fi
 
 mkdir -p "${credentials_dir}"
 export GOOGLE_MCP_CREDENTIALS_DIR="${credentials_dir}"
@@ -150,6 +160,7 @@ export WORKSPACE_MCP_PORT="${port}"
 export WORKSPACE_MCP_HOST="${host}"
 export ALLOWED_FILE_DIRS="${allowed_file_dirs}"
 export WORKSPACE_MCP_OAUTH_PROXY_STORAGE_BACKEND="${oauth_storage_backend}"
+[[ -n "${oauth_proxy_disk_directory}" ]] && export WORKSPACE_MCP_OAUTH_PROXY_DISK_DIRECTORY="${oauth_proxy_disk_directory}"
 
 [[ -n "${auth_client_id}" ]] && export GOOGLE_OAUTH_CLIENT_ID="${auth_client_id}"
 [[ -n "${auth_client_secret}" ]] && export GOOGLE_OAUTH_CLIENT_SECRET="${auth_client_secret}"

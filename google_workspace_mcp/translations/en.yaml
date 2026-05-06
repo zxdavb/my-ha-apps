@@ -79,6 +79,9 @@ configuration:
       workspace_mcp_oauth_proxy_storage_backend:
         name: OAuth Proxy Storage Backend
         description: Storage backend for OAuth state.
+      workspace_mcp_oauth_proxy_disk_directory:
+        name: OAuth Proxy Disk Directory
+        description: Directory used when OAuth proxy storage backend is disk.
       fastmcp_server_auth_google_jwt_signing_key:
         name: JWT Signing Key
         description: Optional key used by OAuth proxy encryption.
