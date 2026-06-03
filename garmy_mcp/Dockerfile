@@ -4,7 +4,7 @@ FROM ${BUILD_FROM}
 
 ARG GARMY_REF=60a4ff32e6c413f4d4701487b1939adf47e2efb7
 
-RUN apk add --no-cache python3 py3-pip \
+RUN apk add --no-cache python3 py3-pip git \
     && python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
     && /opt/venv/bin/pip install --no-cache-dir \

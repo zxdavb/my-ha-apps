@@ -1,3 +1,9 @@
+# Changelog
+
+## 2.0.0-ha1
+
+- Fixed Docker build failure by adding `git` to the image (required for `pip` install from `git+https` source).
+
 ## 2.0.0-ha0
 
 - Initial Home Assistant add-on for garmy, wrapping upstream `garmy 2.0.0` from `zxdavb/garmy`.
