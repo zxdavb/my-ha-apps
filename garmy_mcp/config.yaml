@@ -1,0 +1,44 @@
+# https://developers.home-assistant.io/docs/apps/configuration#app-configuration
+name: Garmy MCP
+version: "2.0.0-ha0"
+slug: garmy_mcp
+description: Garmin health data MCP server (read-only SQLite access for AI assistants).
+url: "https://github.com/zxdavb/garmy"
+arch:
+  - amd64
+init: false
+apparmor: false
+map:
+  - share:rw
+ports:
+  8000/tcp: 8000
+ports_description:
+  8000/tcp: MCP HTTP endpoint (used when transport is http or streamable-http)
+options:
+  database:
+    path: ""
+  advanced_mcp:
+    transport: "streamable-http"
+    host: "0.0.0.0"
+    port: 8000
+    path: "/mcp"
+  advanced_sql:
+    max_rows: 1000
+    max_rows_absolute: 5000
+    enable_query_logging: false
+    disable_strict_validation: false
+    verbose: false
+schema:
+  database:
+    path: "str"
+  advanced_mcp:
+    transport: "list(http|streamable-http|sse)"
+    host: "str"
+    port: "int(1,65535)"
+    path: "str"
+  advanced_sql:
+    max_rows: "int(1,5000)"
+    max_rows_absolute: "int(1,10000)"
+    enable_query_logging: "bool"
+    disable_strict_validation: "bool"
+    verbose: "bool"

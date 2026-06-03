@@ -14,6 +14,7 @@ Use these rules when modifying this repository:
    - `.github/workflows/upstream-update-google-workspace-mcp.yaml`
    - `.github/workflows/upstream-update-rustdesk-server.yaml`
    - `.github/workflows/upstream-update-guacamole.yaml`
+   - `.github/workflows/upstream-update-garmy-mcp.yaml`
 
 4. Version format for maintained apps is `upstream-haN`.
    - Example: `1.6.0-ha1`.

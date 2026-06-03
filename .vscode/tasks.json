@@ -69,7 +69,8 @@
       "options": [
         "google_workspace_mcp",
         "rustdesk-server",
-        "guacamole"
+        "guacamole",
+        "garmy_mcp"
       ]
     }
   ]

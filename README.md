@@ -37,6 +37,14 @@ _Self-hosted RustDesk server app (hbbs + hbbr) for Home Assistant._
 
 Upstream: [rustdesk/rustdesk-server](https://github.com/rustdesk/rustdesk-server)
 
+### [Garmy MCP](./garmy_mcp)
+
+![Supports amd64 Architecture][amd64-shield]
+
+_Garmin health data MCP server for Home Assistant._
+
+Upstream: [zxdavb/garmy](https://github.com/zxdavb/garmy) (fork of [bes-dev/garmy](https://github.com/bes-dev/garmy))
+
 ## License
 
 This repository is licensed under the MIT License. See [LICENSE](./LICENSE).

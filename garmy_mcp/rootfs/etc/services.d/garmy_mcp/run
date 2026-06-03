@@ -1,0 +1,97 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Start the Garmy MCP service
+# ==============================================================================
+
+set -euo pipefail
+
+db_path="$(bashio::config 'database.path')"
+transport="$(bashio::config 'advanced_mcp.transport')"
+host="$(bashio::config 'advanced_mcp.host')"
+port="$(bashio::config 'advanced_mcp.port')"
+path="$(bashio::config 'advanced_mcp.path')"
+max_rows="$(bashio::config 'advanced_sql.max_rows')"
+max_rows_absolute="$(bashio::config 'advanced_sql.max_rows_absolute')"
+
+declare -a cmd
+
+if [[ -z "${db_path}" ]]; then
+    bashio::log.fatal "database.path is required"
+    bashio::exit.nok
+fi
+
+mkdir -p "$(dirname "${db_path}")"
+
+if [[ ! -f "${db_path}" ]]; then
+    bashio::log.warning "Database file not found at ${db_path}; creating an empty SQLite database."
+    python3 -c "import sqlite3, sys; sqlite3.connect(sys.argv[1]).close()" "${db_path}"
+fi
+
+if (( max_rows > max_rows_absolute )); then
+    bashio::log.fatal "advanced_sql.max_rows (${max_rows}) cannot exceed advanced_sql.max_rows_absolute (${max_rows_absolute})."
+    bashio::exit.nok
+fi
+
+case "${transport}" in
+    http|streamable-http|sse)
+        ;;
+    stdio)
+        bashio::log.fatal "stdio transport is no longer supported by this add-on. Use streamable-http, http, or sse."
+        bashio::exit.nok
+        ;;
+    *)
+        bashio::log.fatal "Unsupported transport: ${transport}. Use streamable-http, http, or sse."
+        bashio::exit.nok
+        ;;
+esac
+
+if [[ -z "${host}" ]]; then
+    bashio::log.fatal "advanced_mcp.host is required when transport is ${transport}."
+    bashio::exit.nok
+fi
+
+if [[ -z "${port}" ]]; then
+    bashio::log.fatal "advanced_mcp.port is required when transport is ${transport}."
+    bashio::exit.nok
+fi
+
+if [[ -z "${path}" ]]; then
+    bashio::log.fatal "advanced_mcp.path is required when transport is ${transport}."
+    bashio::exit.nok
+fi
+
+export FASTMCP_TRANSPORT="${transport}"
+export FASTMCP_HOST="${host}"
+export FASTMCP_PORT="${port}"
+
+# FastMCP uses a transport-specific path setting for streamable HTTP/SSE.
+if [[ "${transport}" == "streamable-http" || "${transport}" == "http" ]]; then
+    export FASTMCP_STREAMABLE_HTTP_PATH="${path}"
+fi
+
+if [[ "${transport}" == "sse" ]]; then
+    export FASTMCP_SSE_PATH="${path}"
+fi
+
+cmd=(
+    garmy-mcp
+    server
+    --database "${db_path}"
+    --max-rows "${max_rows}"
+    --max-rows-absolute "${max_rows_absolute}"
+)
+
+if bashio::config.true 'advanced_sql.enable_query_logging'; then
+    cmd+=(--enable-query-logging)
+fi
+
+if bashio::config.true 'advanced_sql.disable_strict_validation'; then
+    cmd+=(--disable-strict-validation)
+fi
+
+if bashio::config.true 'advanced_sql.verbose'; then
+    cmd+=(--verbose)
+fi
+
+exec "${cmd[@]}"

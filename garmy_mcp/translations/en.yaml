@@ -1,0 +1,43 @@
+configuration:
+  database:
+    name: Database
+    description: Core database settings.
+    fields:
+      path:
+        name: Database path
+        description: Absolute path to the Garmy SQLite database file.
+  advanced_mcp:
+    name: Advanced MCP
+    description: Advanced FastMCP network and URL settings.
+    fields:
+      transport:
+        name: Transport
+        description: MCP transport mode (streamable-http, http, or sse). Use streamable-http for URL access.
+      host:
+        name: Host interface
+        description: Bind address for network transports.
+      port:
+        name: Port
+        description: Listen port for network transports.
+      path:
+        name: URL path
+        description: Endpoint path for network transports, for example /mcp.
+  advanced_sql:
+    name: Advanced SQL
+    description: Advanced SQL safety and logging settings.
+    fields:
+      max_rows:
+        name: Maximum rows per query
+        description: Soft row limit applied when queries have no LIMIT clause.
+      max_rows_absolute:
+        name: Absolute maximum rows
+        description: Hard safety limit used by query validation.
+      enable_query_logging:
+        name: Enable query logging
+        description: Log SQL queries and row counts for debugging.
+      disable_strict_validation:
+        name: Disable strict validation
+        description: Relax SQL validation rules (not recommended).
+      verbose:
+        name: Verbose startup logs
+        description: Show detailed startup configuration in logs.
