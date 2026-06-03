@@ -3,7 +3,7 @@ ARG BUILD_FROM=ghcr.io/home-assistant/base:3.23
 FROM ${BUILD_FROM}
 
 ARG TARGETARCH
-ARG RUSTDESK_SERVER_VERSION=1.1.11-1
+ARG RUSTDESK_SERVER_VERSION=1.1.15
 
 RUN apk add --no-cache --virtual .build-deps curl unzip \
     && mkdir -p /opt \
