@@ -64,3 +64,9 @@ Use these rules when modifying this repository:
    - Keep non-Dockerfile app filtering in `.github/workflows/builder.yaml` so external-image wrappers are not sent to the reusable build workflow.
    - Prefer caller-side filtering in `builder.yaml` over adding app-specific branching in `build-app.yaml` to minimize divergence from upstream reusable workflow code.
    - If workflows are synced from another repository and this logic is lost, re-apply it before merging.
+
+15. Upstream update PR auto-merge policy
+   - Goal: upstream-update workflows should enable PR auto-merge after creating/updating dependency bump PRs.
+   - Auto-merge must remain guarded: only proceed when the PR author is `github-actions[bot]` and only expected app files are changed.
+   - Keep branch protections and required checks as the final gate; auto-merge should queue, not bypass protections.
+   - If repository auto-merge is disabled or protections are missing, keep workflow behavior safe (PR still opens/updates; merge does not force through).

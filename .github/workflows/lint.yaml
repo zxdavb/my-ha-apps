@@ -39,3 +39,28 @@ jobs:
         uses: frenck/action-addon-linter@v2.21
         with:
           path: "./${{ matrix.path }}"
+
+  lint-required:
+    name: Lint (required)
+    runs-on: ubuntu-latest
+    needs:
+      - find
+      - lint
+    if: ${{ always() }}
+    steps:
+      - name: Enforce lint workflow result
+        run: |
+          echo "find result: ${{ needs.find.result }}"
+          echo "lint result: ${{ needs.lint.result }}"
+
+          if [[ "${{ needs.find.result }}" != "success" ]]; then
+            echo "Find apps job failed or was cancelled"
+            exit 1
+          fi
+
+          if [[ "${{ needs.lint.result }}" != "success" ]]; then
+            echo "At least one matrix lint job failed or was cancelled"
+            exit 1
+          fi
+
+          echo "All lint checks passed"

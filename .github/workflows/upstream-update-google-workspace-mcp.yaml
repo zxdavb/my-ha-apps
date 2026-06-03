@@ -102,6 +102,7 @@ jobs:
 
       - name: Create pull request
         if: steps.updater.outputs.changed == 'true'
+        id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
           branch: chore/upstream-google-workspace-mcp-updates
@@ -111,3 +112,45 @@ jobs:
           labels: |
             dependencies
             automated pr
+
+      - name: Validate PR safety for auto-merge
+        if: steps.updater.outputs.changed == 'true' && steps.cpr.outputs.pull-request-number != ''
+        id: safety
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr_number="${{ steps.cpr.outputs.pull-request-number }}"
+          author="$(gh pr view "$pr_number" --json author -q '.author.login')"
+
+          if [ "$author" != "github-actions[bot]" ]; then
+            echo "safe=false" >> "$GITHUB_OUTPUT"
+            echo "Refusing auto-merge: PR author is $author"
+            exit 0
+          fi
+
+          allowed_regex='^google_workspace_mcp/(requirements\.txt|config\.yaml)$'
+          disallowed=""
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if ! echo "$file" | grep -Eq "$allowed_regex"; then
+              disallowed="$disallowed $file"
+            fi
+          done < <(gh pr view "$pr_number" --json files -q '.files[].path')
+
+          if [ -n "$disallowed" ]; then
+            echo "safe=false" >> "$GITHUB_OUTPUT"
+            echo "Refusing auto-merge: PR includes disallowed file(s):$disallowed"
+            exit 0
+          fi
+
+          echo "safe=true" >> "$GITHUB_OUTPUT"
+
+      - name: Enable PR auto-merge
+        if: steps.updater.outputs.changed == 'true' && steps.safety.outputs.safe == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh pr merge "${{ steps.cpr.outputs.pull-request-number }}" --auto --squash; then
+            echo "Auto-merge could not be enabled. Ensure repository auto-merge is enabled and branch protections are configured."
+          fi
