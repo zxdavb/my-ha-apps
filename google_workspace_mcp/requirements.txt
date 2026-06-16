@@ -1,1 +1,1 @@
-workspace-mcp[disk]==1.21.1
+workspace-mcp[disk]==1.21.2
