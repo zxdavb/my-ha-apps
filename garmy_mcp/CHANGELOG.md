@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.0.0-ha3
+
+- Added periodic `garmy-sync` service; syncs Garmin data on startup and on a configurable interval.
+- Added `garmin.email` and `garmin.password` config fields; credentials used only to obtain initial OAuth tokens.
+- OAuth tokens stored in `/data/.garmy/` and reused across restarts; manual token-file copy also supported.
+- Added `sync.interval_hours` and `sync.days` config fields.
+
+## 2.0.0-ha2
+
+- Exposed MCP bind address and port as top-level settings (`mcp.host`, `mcp.port`).
+- Kept MCP URL suffix/path in advanced settings (`advanced_mcp.path`).
+- Set default SQL database path to `/data/health.db` and kept it user-visible.
+- Removed advanced SQL tuning options from the add-on configuration.
+
 ## 2.0.0-ha1
 
 - Fixed Docker build failure by adding `git` to the image (required for `pip` install from `git+https` source).

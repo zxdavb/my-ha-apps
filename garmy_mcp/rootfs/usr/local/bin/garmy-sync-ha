@@ -1,0 +1,79 @@
+#!/opt/venv/bin/python3
+"""Garmy sync wrapper for the Home Assistant add-on.
+
+Authenticates via stored tokens in $HOME/.garmy (= /data/.garmy when HOME=/data).
+Falls back to GARMIN_EMAIL / GARMIN_PASSWORD env vars only when no valid tokens exist.
+"""
+import os
+import sys
+from datetime import date, timedelta
+from pathlib import Path
+
+
+def main() -> int:
+    db_path_str = os.environ.get("GARMY_DB_PATH")
+    if not db_path_str:
+        print("ERROR: GARMY_DB_PATH not set", file=sys.stderr)
+        return 1
+
+    days = int(os.environ.get("GARMY_SYNC_DAYS", "7"))
+    email = os.environ.get("GARMIN_EMAIL", "")
+    password = os.environ.get("GARMIN_PASSWORD", "")
+
+    from garmy.auth.client import AuthClient
+    from garmy import APIClient
+    from garmy.localdb.sync import SyncManager
+    from garmy.localdb.config import LocalDBConfig
+    from garmy.localdb.progress import ProgressReporter
+    from garmy.localdb.activities_iterator import ActivitiesIterator
+
+    auth = AuthClient()  # loads from ~/.garmy, which is /data/.garmy when HOME=/data
+
+    if not auth.is_authenticated:
+        if not email or not password:
+            print(
+                "No valid Garmin tokens found and no credentials configured.\n"
+                "Set garmin.email and garmin.password in the add-on configuration,\n"
+                "or copy token files to /data/.garmy/ manually.",
+                file=sys.stderr,
+            )
+            return 2
+        print("Authenticating with Garmin Connect...")
+        auth.login(email, password)
+        auth.save_tokens()
+        print("Authentication successful; tokens saved to /data/.garmy/.")
+    else:
+        print("Using cached Garmin tokens.")
+
+    db_path = Path(db_path_str)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+
+    config = LocalDBConfig()
+    progress = ProgressReporter(use_tqdm=False)
+
+    manager = SyncManager(db_path=db_path, config=config, progress_reporter=progress)
+    manager.api_client = APIClient(auth_client=auth)
+
+    try:
+        manager.activities_iterator = ActivitiesIterator(
+            manager.api_client, config.sync, progress
+        )
+        manager.activities_iterator.initialize()
+    except Exception as exc:
+        print(f"Warning: activities iterator failed to initialise ({exc}); activities will be skipped.", file=sys.stderr)
+
+    end = date.today()
+    start = end - timedelta(days=days - 1)
+    print(f"Syncing {days} day(s): {start} to {end}...")
+
+    stats = manager.sync_range(user_id=1, start_date=start, end_date=end)
+    print(
+        f"Sync complete: {stats['completed']} synced, "
+        f"{stats['skipped']} skipped, "
+        f"{stats['failed']} failed."
+    )
+    return 0 if stats["failed"] == 0 else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

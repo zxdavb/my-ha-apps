@@ -1,0 +1,40 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Periodic Garmy sync service
+# ==============================================================================
+
+export HOME="/data"
+
+db_path="$(bashio::config 'database.path')"
+interval_hours="$(bashio::config 'sync.interval_hours')"
+sync_days="$(bashio::config 'sync.days')"
+
+export GARMY_DB_PATH="${db_path}"
+export GARMY_SYNC_DAYS="${sync_days}"
+
+if bashio::config.has_value 'garmin.email'; then
+    export GARMIN_EMAIL="$(bashio::config 'garmin.email')"
+fi
+if bashio::config.has_value 'garmin.password'; then
+    export GARMIN_PASSWORD="$(bashio::config 'garmin.password')"
+fi
+
+interval_seconds=$(( interval_hours * 3600 ))
+
+while true; do
+    bashio::log.info "Starting Garmy sync..."
+    garmy-sync-ha
+    code=$?
+    if [[ ${code} -eq 0 ]]; then
+        bashio::log.info "Garmy sync completed successfully."
+    elif [[ ${code} -eq 2 ]]; then
+        bashio::log.warning "Garmy sync skipped: no credentials or tokens available."
+        bashio::log.warning "Set garmin.email/password in config, or copy token files to /data/.garmy/."
+    else
+        bashio::log.warning "Garmy sync finished with errors (exit ${code})."
+    fi
+    bashio::log.info "Next sync in ${interval_hours} hour(s)."
+    sleep "${interval_seconds}" &
+    wait $!
+done

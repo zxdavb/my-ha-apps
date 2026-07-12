@@ -12,6 +12,40 @@ Garmin health data MCP server app for Home Assistant.
 
 This app installs `garmy[all]` from the fork repository into a virtualenv on top of the HA base image, then starts the `garmy-mcp` server.
 
+## Garmin Connect authentication
+
+The add-on runs `garmy-sync` on a configurable schedule to pull data from Garmin Connect into the local SQLite database.
+
+### Option A — credentials in add-on config (recommended)
+
+Set `garmin.email` and `garmin.password` in the add-on configuration. On first start the add-on authenticates with Garmin Connect, saves OAuth tokens to `/data/.garmy/`, and refreshes them automatically. Credentials are only used when the tokens are absent or expired.
+
+### Option B — manual token copy
+
+If you have already run `garmy-sync` on another machine (or prefer not to store credentials in the add-on), copy the two token files instead:
+
+1. On the machine where you ran `garmy-sync`, locate the token directory (default `~/.garmy/`):
+
+   ```text
+   ~/.garmy/oauth1_token.json
+   ~/.garmy/oauth2_token.json
+   ```
+
+2. Copy both files into the add-on's persistent data volume on your Home Assistant host:
+
+   The easiest path via SSH or Samba is:
+
+   ```text
+   /mnt/data/supervisor/addons/data/local_garmy_mcp/.garmy/oauth1_token.json
+   /mnt/data/supervisor/addons/data/local_garmy_mcp/.garmy/oauth2_token.json
+   ```
+
+   (The exact path varies by HA installation type; adjust `local_garmy_mcp` to match your add-on slug.)
+
+3. Leave `garmin.email` and `garmin.password` empty and restart the add-on.
+
+The OAuth2 refresh token typically lasts several months. When it eventually expires the add-on will log a warning and you will need to re-authenticate via Option A or repeat the token copy.
+
 ## Authentication and External Proxy (NPM)
 
 Recommended model: keep auth outside this app and front it with Nginx Proxy Manager (NPM).
