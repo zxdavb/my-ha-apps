@@ -1,5 +1,5 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
-name: Guacamole Client
+name: My Guacamole Client
 version: "1.6.0-ha0"
 slug: guacamole
 description: Clientless remote desktop gateway (Apache Guacamole).

@@ -1,5 +1,5 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
-name: Garmy MCP
+name: My Garmy MCP
 version: "2.0.0-ha2"
 slug: garmy_mcp
 description: Garmin health data MCP server (read-only SQLite access for AI assistants).
