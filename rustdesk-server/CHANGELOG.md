@@ -1,3 +1,7 @@
+## 1.1.15-ha2
+
+- Version bump only; no functional changes.
+
 ## 1.1.11-1-ha0
 
 - Initial repository baseline for this app.

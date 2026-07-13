@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha4
+
+- Version bump only; no functional changes.
+
 ## 2.0.0-ha3
 
 - Added periodic `garmy-sync` service; syncs Garmin data on startup and on a configurable interval.

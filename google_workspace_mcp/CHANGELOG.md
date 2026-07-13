@@ -1,3 +1,7 @@
+## 1.21.2-ha2
+
+- Version bump only; no functional changes.
+
 ## 1.20.3-ha2
 
 - Fixed OAuth 2.1 proxy disk persistence by explicitly setting `WORKSPACE_MCP_OAUTH_PROXY_DISK_DIRECTORY`.
