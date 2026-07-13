@@ -8,7 +8,7 @@ export HOME="/data"
 
 db_path="$(bashio::config 'database.path')"
 interval_hours="$(bashio::config 'sync.interval_hours')"
-sync_days="$(bashio::config 'sync.days')"
+sync_days="$(bashio::config 'sync.history_days')"
 
 export GARMY_DB_PATH="${db_path}"
 export GARMY_SYNC_DAYS="${sync_days}"

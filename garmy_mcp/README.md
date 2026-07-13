@@ -60,10 +60,8 @@ Recommended model: keep auth outside this app and front it with Nginx Proxy Mana
 
 1. Configure this app for URL transport:
    - `database.path`: your SQLite DB file path.
-   - `advanced_mcp.transport`: `streamable-http`.
-   - `advanced_mcp.host`: `0.0.0.0`.
-   - `advanced_mcp.port`: `8000` (or your custom port).
-   - `advanced_mcp.path`: `/mcp`.
+   - `mcp.host`: `0.0.0.0`.
+   - `mcp.path`: `/mcp`.
 
 2. In NPM, create a proxy host:
    - Domain: your public MCP hostname, for example `mcp.example.com`.

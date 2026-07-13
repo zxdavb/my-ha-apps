@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
 name: My Garmy MCP
-version: "2.0.0-ha5"
+version: "2.0.0-ha8"
 slug: garmy_mcp
 description: Garmin health data MCP server (read-only SQLite access for AI assistants).
 url: "https://github.com/zxdavb/garmy"
@@ -13,7 +13,7 @@ map:
 ports:
   8000/tcp: 8000
 ports_description:
-  8000/tcp: MCP HTTP endpoint (used when transport is http or streamable-http)
+  8000/tcp: MCP HTTP endpoint
 options:
   database:
     path: "/data/health.db"
@@ -22,11 +22,9 @@ options:
     password: ""
   sync:
     interval_hours: 6
-    days: 7
+    history_days: 7
   mcp:
     host: "0.0.0.0"
-  advanced_mcp:
-    transport: "streamable-http"
     path: "/mcp"
 schema:
   database:
@@ -36,9 +34,7 @@ schema:
     password: "password?"
   sync:
     interval_hours: "int(1,168)"
-    days: "int(1,90)"
+    history_days: "int(1,90)"
   mcp:
     host: "str"
-  advanced_mcp:
-    transport: "list(http|streamable-http|sse)"
     path: "str"

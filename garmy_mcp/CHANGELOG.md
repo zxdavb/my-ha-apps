@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0-ha8
+
+- Renamed `sync.days` to `sync.history_days` for clarity.
+
+## 2.0.0-ha7
+
+- Removed the `advanced_mcp` group; transport is now fixed to `streamable-http` (no longer user-configurable) and `path` moved to `mcp.path`.
+
+## 2.0.0-ha6
+
+- Removed `http` and `sse` from the `advanced_mcp.transport` options; only `streamable-http` is supported now.
+
 ## 2.0.0-ha5
 
 - Removed the `mcp.port` option; the MCP server now always listens on 8000 inside the container, matching the fixed port declared in `ports:`. Changing `mcp.port` previously broke connectivity because Supervisor's port publishing is static and doesn't follow runtime option changes.

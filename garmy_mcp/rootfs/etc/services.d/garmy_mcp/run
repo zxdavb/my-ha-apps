@@ -7,12 +7,13 @@
 set -euo pipefail
 
 db_path="$(bashio::config 'database.path')"
-transport="$(bashio::config 'advanced_mcp.transport')"
+# Fixed: FastMCP's HTTP transport is the only one this add-on supports.
+transport="streamable-http"
 host="$(bashio::config 'mcp.host')"
 # Must match the container-side port declared in config.yaml's `ports:` map;
 # it is not user-configurable because Supervisor's port publishing is static.
 port="8000"
-path="$(bashio::config 'advanced_mcp.path')"
+path="$(bashio::config 'mcp.path')"
 
 declare -a cmd
 
@@ -28,41 +29,20 @@ if [[ ! -f "${db_path}" ]]; then
     python3 -c "import sqlite3, sys; sqlite3.connect(sys.argv[1]).close()" "${db_path}"
 fi
 
-case "${transport}" in
-    http|streamable-http|sse)
-        ;;
-    stdio)
-        bashio::log.fatal "stdio transport is no longer supported by this add-on. Use streamable-http, http, or sse."
-        bashio::exit.nok
-        ;;
-    *)
-        bashio::log.fatal "Unsupported transport: ${transport}. Use streamable-http, http, or sse."
-        bashio::exit.nok
-        ;;
-esac
-
 if [[ -z "${host}" ]]; then
-    bashio::log.fatal "mcp.host is required when transport is ${transport}."
+    bashio::log.fatal "mcp.host is required."
     bashio::exit.nok
 fi
 
 if [[ -z "${path}" ]]; then
-    bashio::log.fatal "advanced_mcp.path is required when transport is ${transport}."
+    bashio::log.fatal "mcp.path is required."
     bashio::exit.nok
 fi
 
 export FASTMCP_TRANSPORT="${transport}"
 export FASTMCP_HOST="${host}"
 export FASTMCP_PORT="${port}"
-
-# FastMCP uses a transport-specific path setting for streamable HTTP/SSE.
-if [[ "${transport}" == "streamable-http" || "${transport}" == "http" ]]; then
-    export FASTMCP_STREAMABLE_HTTP_PATH="${path}"
-fi
-
-if [[ "${transport}" == "sse" ]]; then
-    export FASTMCP_SSE_PATH="${path}"
-fi
+export FASTMCP_STREAMABLE_HTTP_PATH="${path}"
 
 cmd=(
     garmy-mcp

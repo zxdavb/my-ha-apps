@@ -22,16 +22,13 @@ If the database does not exist yet, the add-on creates an empty one so the MCP s
 - `garmin.email`: Garmin Connect account email (leave empty if using token files).
 - `garmin.password`: Garmin Connect password (leave empty if using token files).
 - `sync.interval_hours`: Hours between sync runs (default `6`, max `168`).
-- `sync.days`: Days of history to sync on each run (default `7`, max `90`).
+- `sync.history_days`: Days of history to sync on each run (default `7`, max `90`).
 - `mcp.host`: MCP server bind address (default `0.0.0.0`).
-- `mcp.port`: MCP server port (default `8000`).
-- Advanced MCP:
-  - `advanced_mcp.transport`: Transport mode (default `streamable-http`).
-  - `advanced_mcp.path`: URL path (default `/mcp`).
+- `mcp.path`: URL path (default `/mcp`).
 
 ## Notes
 
 - `/share` is mapped so you can use a database under shared storage.
-- This app is network transport only; `stdio` is not supported.
-- For URL access, use `advanced_mcp.transport: streamable-http` (recommended), then connect to `http://<home-assistant-host>:8000/mcp` unless you changed host/port/path.
+- This app always serves MCP over `streamable-http` on port 8000 (see `ports:`); other transports are not available.
+- Connect to `http://<home-assistant-host>:8000/mcp` unless you changed host/path.
 - Upstream MCP behavior and tool implementations are maintained by the upstream project.
