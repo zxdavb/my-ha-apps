@@ -9,6 +9,9 @@
     "github.vscode-github-actions",
     "ms-python.python",
     "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "ms-python.mypy-type-checker",
+    "eamodio.gitlens",
     "davidanson.vscode-markdownlint",
     "yzhang.markdown-all-in-one"
   ]
