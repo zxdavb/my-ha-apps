@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
-name: My Guacamole Client
-version: "1.6.0-ha0"
+name: My Guacamole Gateway
+version: "1.6.0-ha1"
 slug: guacamole
 description: Clientless remote desktop gateway (Apache Guacamole).
 url: "https://github.com/abesnier/docker-guacamole"
