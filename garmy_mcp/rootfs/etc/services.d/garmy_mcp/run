@@ -9,7 +9,9 @@ set -euo pipefail
 db_path="$(bashio::config 'database.path')"
 transport="$(bashio::config 'advanced_mcp.transport')"
 host="$(bashio::config 'mcp.host')"
-port="$(bashio::config 'mcp.port')"
+# Must match the container-side port declared in config.yaml's `ports:` map;
+# it is not user-configurable because Supervisor's port publishing is static.
+port="8000"
 path="$(bashio::config 'advanced_mcp.path')"
 
 declare -a cmd
@@ -41,11 +43,6 @@ esac
 
 if [[ -z "${host}" ]]; then
     bashio::log.fatal "mcp.host is required when transport is ${transport}."
-    bashio::exit.nok
-fi
-
-if [[ -z "${port}" ]]; then
-    bashio::log.fatal "mcp.port is required when transport is ${transport}."
     bashio::exit.nok
 fi
 

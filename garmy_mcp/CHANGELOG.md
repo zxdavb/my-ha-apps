@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha5
+
+- Removed the `mcp.port` option; the MCP server now always listens on 8000 inside the container, matching the fixed port declared in `ports:`. Changing `mcp.port` previously broke connectivity because Supervisor's port publishing is static and doesn't follow runtime option changes.
+
 ## 2.0.0-ha4
 
 - Version bump only; no functional changes.

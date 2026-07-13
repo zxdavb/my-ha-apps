@@ -33,9 +33,6 @@ configuration:
       host:
         name: Bind address
         description: Bind address for the MCP network listener.
-      port:
-        name: Port
-        description: Listen port for the MCP server.
   advanced_mcp:
     name: Advanced MCP
     description: Advanced FastMCP network and URL settings.
