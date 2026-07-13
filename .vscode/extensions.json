@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    "timonwong.shellcheck",
+    "esbenp.prettier-vscode",
+    "streetsidesoftware.code-spell-checker",
+    "anthropic.claude-code",
+    "ms-azuretools.vscode-docker",
+    "redhat.vscode-yaml",
+    "github.vscode-github-actions",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "davidanson.vscode-markdownlint",
+    "yzhang.markdown-all-in-one"
+  ]
+}
