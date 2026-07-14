@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha14
+
+- Dropped the blanket `set -x` shell tracing that `advanced.debug_logging` enabled. It was tracing bashio's own internal implementation (every `bashio::log.trace`, `bashio::cache.*`, `bashio::fs.*` call), producing megabytes of log for a few seconds of runtime — not the intent. `advanced.debug_logging` now only enables our own targeted diagnostics (token file existence/size/JSON validity, bashio debug-level messages), which is what was actually useful.
+
 ## 2.0.0-ha13
 
 - `garmy-sync-ha` now attempts `AuthClient.refresh_tokens()` before giving up when `is_authenticated` is false. `is_authenticated` only checks whether the (short-lived, ~1h) OAuth2 access token has expired and never refreshes it itself — so a token pasted in shortly after being generated interactively was being treated as unusable even though the OAuth1 token could mint a fresh OAuth2 token without any interactive step. Root-caused via `advanced.debug_logging` output showing well-formed, correctly-seeded token files with `auth.is_authenticated=False`.

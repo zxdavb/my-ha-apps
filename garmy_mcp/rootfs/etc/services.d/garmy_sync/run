@@ -9,7 +9,6 @@ export HOME="/data"
 if bashio::config.true 'advanced.debug_logging'; then
     bashio::log.level "debug"
     export GARMY_DEBUG=1
-    set -x
 fi
 
 db_path="$(bashio::config 'database.path')"

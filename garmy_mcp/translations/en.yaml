@@ -53,6 +53,7 @@ configuration:
       debug_logging:
         name: Debug logging
         description: >-
-          Enable verbose shell tracing (set -x) and extra Garmin token
-          diagnostics in the add-on log. Leave off for normal use; the
-          output can be noisy and may include token file paths/sizes.
+          Adds Garmin token diagnostics (existence, size, JSON validity) and
+          extra bashio detail to the add-on log, to help troubleshoot
+          auth/sync issues. Leave off for normal use; its output includes
+          token file paths/sizes.

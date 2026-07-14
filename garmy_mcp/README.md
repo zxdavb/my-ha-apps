@@ -63,7 +63,7 @@ The OAuth2 refresh token typically lasts several months. When it eventually expi
 
 ### Troubleshooting
 
-Set `advanced.debug_logging: true` in the add-on configuration and restart to get verbose shell tracing plus token-file diagnostics (existence, size, whether each file parses as JSON) in the add-on log. Leave it off otherwise — it's noisy and its output includes token file paths/sizes.
+Set `advanced.debug_logging: true` in the add-on configuration and restart to get token-file diagnostics (existence, size, whether each file parses as JSON) in the add-on log. Leave it off otherwise — its output includes token file paths/sizes.
 
 ## Authentication and External Proxy (NPM)
 
