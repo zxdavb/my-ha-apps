@@ -7,12 +7,23 @@ config) or copied in manually; this add-on runs headlessly and cannot
 complete an interactive Garmin login (email/password + MFA) on its own.
 """
 import json
+import logging
 import os
 import sys
 from datetime import date, timedelta
 from pathlib import Path
 
 DEBUG = os.environ.get("GARMY_DEBUG") == "1"
+
+# garmy's SyncManager/ProgressReporter reports per-day/per-metric progress
+# via the standard logging module (logger "garmy.sync", INFO level), not
+# print(); without a configured handler those records are silently dropped.
+# Root level is kept at INFO even in debug mode (not DEBUG) so third-party
+# HTTP libraries garmy may use internally don't start logging full
+# request/response detail, which can include Authorization headers/tokens.
+logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
+if DEBUG:
+    logging.getLogger("garmy.sync").setLevel(logging.DEBUG)
 
 
 def _debug(msg: str) -> None:
