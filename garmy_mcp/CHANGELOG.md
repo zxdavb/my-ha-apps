@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha15
+
+- Raised `sync.history_days` max from 90 to 999, to allow pulling a full backlog of history on first sync.
+
 ## 2.0.0-ha14
 
 - Dropped the blanket `set -x` shell tracing that `advanced.debug_logging` enabled. It was tracing bashio's own internal implementation (every `bashio::log.trace`, `bashio::cache.*`, `bashio::fs.*` call), producing megabytes of log for a few seconds of runtime — not the intent. `advanced.debug_logging` now only enables our own targeted diagnostics (token file existence/size/JSON validity, bashio debug-level messages), which is what was actually useful.
