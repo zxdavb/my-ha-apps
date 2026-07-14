@@ -20,7 +20,7 @@ If the database does not exist yet, the add-on creates an empty one so the MCP s
 ## Important options
 
 - `database.path`: Path to the SQLite database file (default `/data/health.db`).
-- `garmin.oauth1_token_json` / `garmin.oauth2_token_json`: Paste the contents of `oauth1_token.json` and `oauth2_token.json` obtained via an interactive login elsewhere. Only used to seed `/data/.garmy/` once; see the README.
+- `garmin.oauth1_token_json` / `garmin.oauth2_token_json`: Paste the contents of `oauth1_token.json` and `oauth2_token.json` obtained via an interactive login elsewhere. Each overwrites its matching file under `/data/.garmy/` on every start; leave blank to leave that file untouched. See the README.
 - `sync.interval_hours`: Hours between sync runs (default `6`, max `168`).
 - `sync.history_days`: Days of history to sync on each run (default `7`, max `90`).
 - `mcp.host`: MCP server bind address (default `0.0.0.0`).

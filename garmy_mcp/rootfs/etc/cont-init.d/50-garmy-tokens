@@ -1,9 +1,13 @@
 #!/usr/bin/with-contenv bashio
 # shellcheck shell=bash
 # ==============================================================================
-# Seed Garmin OAuth token files from pasted config JSON, so accounts with 2FA
-# can be authenticated once (interactively, elsewhere) and the resulting
-# tokens handed to this headless add-on without SSH/Samba access.
+# Write Garmin OAuth token files from pasted config JSON on every startup, so
+# accounts with 2FA can be authenticated once (interactively, elsewhere) and
+# the resulting tokens handed to this headless add-on without SSH/Samba
+# access. Each of garmin.oauth1_token_json / garmin.oauth2_token_json is
+# written independently, unconditionally overwriting the matching file in
+# /data/.garmy/ whenever it's set; leave a field blank to leave that file
+# untouched (e.g. to keep tokens garmy-sync has since refreshed on disk).
 # ==============================================================================
 
 set -euo pipefail
@@ -16,54 +20,42 @@ fi
 tokens_dir="/data/.garmy"
 mkdir -p "${tokens_dir}"
 
-if [[ -f "${tokens_dir}/oauth1_token.json" && -f "${tokens_dir}/oauth2_token.json" ]]; then
-    bashio::log.info "Garmin tokens already present in ${tokens_dir}; not seeding from config."
-    bashio::log.debug "$(ls -la "${tokens_dir}")"
-    exit 0
-fi
+write_token_file() {
+    local filename="$1" option_name="$2" raw
 
-if ! bashio::config.has_value 'garmin.oauth1_token_json' || ! bashio::config.has_value 'garmin.oauth2_token_json'; then
-    exit 0
-fi
+    if ! bashio::config.has_value "${option_name}"; then
+        bashio::log.debug "${option_name} is blank; leaving ${filename} untouched."
+        return 0
+    fi
 
-GARMIN_OAUTH1_TOKEN_JSON="$(bashio::config 'garmin.oauth1_token_json')"
-GARMIN_OAUTH2_TOKEN_JSON="$(bashio::config 'garmin.oauth2_token_json')"
-export GARMIN_OAUTH1_TOKEN_JSON GARMIN_OAUTH2_TOKEN_JSON
-
-python3 <<'EOF'
+    raw="$(bashio::config "${option_name}")"
+    GARMY_TOKEN_JSON="${raw}" GARMY_TOKEN_FILE="${tokens_dir}/${filename}" GARMY_OPTION_NAME="${option_name}" python3 <<'EOF'
 import json
 import os
 import stat
 import sys
 from pathlib import Path
 
-tokens_dir = Path("/data/.garmy")
+raw = os.environ["GARMY_TOKEN_JSON"]
+path = Path(os.environ["GARMY_TOKEN_FILE"])
+option_name = os.environ["GARMY_OPTION_NAME"]
 
-files = {
-    "oauth1_token.json": ("GARMIN_OAUTH1_TOKEN_JSON", "garmin.oauth1_token_json"),
-    "oauth2_token.json": ("GARMIN_OAUTH2_TOKEN_JSON", "garmin.oauth2_token_json"),
+try:
+    data = json.loads(raw)
+except json.JSONDecodeError as exc:
+    print(f"ERROR: {option_name} is not valid JSON: {exc}", file=sys.stderr)
+    sys.exit(1)
+if not isinstance(data, dict):
+    print(f"ERROR: {option_name} must be a JSON object.", file=sys.stderr)
+    sys.exit(1)
+
+path.write_text(json.dumps(data))
+path.chmod(stat.S_IRUSR | stat.S_IWUSR)
+print(f"Wrote {path} from {option_name}.")
+EOF
 }
 
-parsed = {}
-for filename, (env_var, option_name) in files.items():
-    raw = os.environ[env_var]
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        print(f"ERROR: {option_name} is not valid JSON: {exc}", file=sys.stderr)
-        sys.exit(1)
-    if not isinstance(data, dict):
-        print(f"ERROR: {option_name} must be a JSON object.", file=sys.stderr)
-        sys.exit(1)
-    parsed[filename] = data
+write_token_file "oauth1_token.json" "garmin.oauth1_token_json"
+write_token_file "oauth2_token.json" "garmin.oauth2_token_json"
 
-tokens_dir.mkdir(parents=True, exist_ok=True)
-for filename, data in parsed.items():
-    path = tokens_dir / filename
-    path.write_text(json.dumps(data))
-    path.chmod(stat.S_IRUSR | stat.S_IWUSR)
-
-print(f"Garmin tokens seeded from config into {tokens_dir}.")
-EOF
-
-unset GARMIN_OAUTH1_TOKEN_JSON GARMIN_OAUTH2_TOKEN_JSON
+bashio::log.debug "$(ls -la "${tokens_dir}")"

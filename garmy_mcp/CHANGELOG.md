@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha12
+
+- `garmin.oauth1_token_json`/`garmin.oauth2_token_json` are now written to `/data/.garmy/` unconditionally on every start (per field, whenever it's non-blank), instead of only when the matching file didn't already exist. Removes the ambiguity of stale/invalid pre-existing files silently blocking newly-pasted config values; leave a field blank to preserve whatever's already on disk.
+
 ## 2.0.0-ha11
 
 - Added `advanced.debug_logging` config option: enables bash `set -x` tracing and Garmin token-file diagnostics (existence/size/JSON validity) across the sync service, MCP service, and token-seeding init step, to help diagnose auth/sync issues.

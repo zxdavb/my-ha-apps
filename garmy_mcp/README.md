@@ -33,11 +33,11 @@ Authenticate interactively once on any machine where you can enter an MFA code (
 
    Start (or restart) the add-on.
 
-On first start, the add-on writes these into `/data/.garmy/` and uses them from then on, refreshing automatically. The two `*_token_json` fields are only consulted when `/data/.garmy/oauth1_token.json` and `oauth2_token.json` don't already exist yet — they won't overwrite live tokens on later restarts. To force a re-seed (e.g. you pasted new tokens after the old ones expired), delete both files under `/data/.garmy/` first.
+Each field is written to its matching file (`garmin.oauth1_token_json` → `/data/.garmy/oauth1_token.json`, and likewise for oauth2) on **every** start, independently, overwriting whatever's already there. Leave a field blank to leave that file untouched — for example, once you're up and running you can clear both fields and the add-on will just keep using (and `garmy-sync` will keep refreshing) whatever's already on disk, without reverting it on the next restart.
 
 ### Option B — manual token copy
 
-If you have already run `garmy-sync` on another machine, copy the two token files directly instead of pasting them into the config UI:
+If you have already run `garmy-sync` on another machine, copy the two token files directly instead of pasting them into the config UI. Make sure `garmin.oauth1_token_json`/`garmin.oauth2_token_json` are blank, since a non-blank field overwrites the matching file on every start:
 
 1. On the machine where you ran `garmy-sync`, locate the token directory (default `~/.garmy/`):
 
@@ -64,8 +64,6 @@ The OAuth2 refresh token typically lasts several months. When it eventually expi
 ### Troubleshooting
 
 Set `advanced.debug_logging: true` in the add-on configuration and restart to get verbose shell tracing plus token-file diagnostics (existence, size, whether each file parses as JSON) in the add-on log. Leave it off otherwise — it's noisy and its output includes token file paths/sizes.
-
-Note that the token-seed step (`50-garmy-tokens`) only checks whether `/data/.garmy/oauth1_token.json` and `oauth2_token.json` already **exist** — not whether they're valid. If you're troubleshooting a failed sync and those files are already present (from an earlier attempt, or a stale/expired token), pasting new values into `garmin.oauth1_token_json`/`garmin.oauth2_token_json` will have **no effect** until you delete both files under `/data/.garmy/` and restart.
 
 ## Authentication and External Proxy (NPM)
 
