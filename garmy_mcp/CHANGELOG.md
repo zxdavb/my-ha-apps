@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha13
+
+- `garmy-sync-ha` now attempts `AuthClient.refresh_tokens()` before giving up when `is_authenticated` is false. `is_authenticated` only checks whether the (short-lived, ~1h) OAuth2 access token has expired and never refreshes it itself — so a token pasted in shortly after being generated interactively was being treated as unusable even though the OAuth1 token could mint a fresh OAuth2 token without any interactive step. Root-caused via `advanced.debug_logging` output showing well-formed, correctly-seeded token files with `auth.is_authenticated=False`.
+
 ## 2.0.0-ha12
 
 - `garmin.oauth1_token_json`/`garmin.oauth2_token_json` are now written to `/data/.garmy/` unconditionally on every start (per field, whenever it's non-blank), instead of only when the matching file didn't already exist. Removes the ambiguity of stale/invalid pre-existing files silently blocking newly-pasted config values; leave a field blank to preserve whatever's already on disk.

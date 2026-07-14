@@ -60,8 +60,19 @@ def main() -> int:
     _debug(f"auth.is_authenticated={auth.is_authenticated}")
 
     if not auth.is_authenticated:
+        # The OAuth2 access token is short-lived (~1 hour) and may already be
+        # expired by the time it's pasted into config; the long-lived OAuth1
+        # token can mint a fresh one without a full interactive re-login.
+        try:
+            _debug("Not authenticated; attempting OAuth2 token refresh from OAuth1 token...")
+            auth.refresh_tokens()
+            _debug(f"Refresh attempted; auth.is_authenticated={auth.is_authenticated}")
+        except Exception as exc:
+            _debug(f"Token refresh failed: {exc}")
+
+    if not auth.is_authenticated:
         print(
-            "No valid Garmin tokens found.\n"
+            "No valid Garmin tokens found (and refresh failed or was not possible).\n"
             "Set garmin.oauth1_token_json and garmin.oauth2_token_json in the "
             "add-on configuration, or copy token files to /data/.garmy/ manually.",
             file=sys.stderr,
