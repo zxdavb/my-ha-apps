@@ -2,17 +2,23 @@
     "cSpell.words": [
         "abesnier",
         "bashio",
+        "contenv",
         "esbenp",
         "FASTMCP",
         "garmy",
         "hbbr",
         "hbbs",
+        "IRUSR",
+        "isinstance",
+        "IWUSR",
         "localdb",
+        "pathlib",
         "rustdesk",
         "shellcheck",
         "streamable",
         "taylorwilsdon",
         "timonwong",
-        "tmpfs"
+        "tmpfs",
+        "virtualenv"
     ]
 }
