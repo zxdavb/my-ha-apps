@@ -8,7 +8,7 @@ configuration:
         description: Absolute path to the Garmy SQLite database file.
   garmin:
     name: Garmin Connect
-    description: Garmin Connect OAuth tokens. Leave both empty if you manage token files under /data/.garmy/ directly.
+    description: Garmin Connect OAuth1 token. Leave empty if you manage token files under /data/.garmy/ directly.
     fields:
       oauth1_token_json:
         name: Pasted oauth1_token.json
@@ -16,15 +16,10 @@ configuration:
           For 2FA accounts. Paste the full contents of oauth1_token.json,
           produced by an interactive login elsewhere. Written to
           /data/.garmy/oauth1_token.json only when this value changes (a
-          fresh login), so tokens garmy-sync has since refreshed aren't
-          clobbered on restart. Leave blank to manage /data/.garmy/ yourself.
-      oauth2_token_json:
-        name: Pasted oauth2_token.json
-        description: >-
-          For 2FA accounts. Paste the full contents of oauth2_token.json,
-          produced by an interactive login elsewhere. Only used as the
-          starting point when oauth1_token_json changes; ignored otherwise,
-          since garmy-sync keeps this one refreshed on disk.
+          fresh login), so an OAuth2 access token garmy-sync has since
+          refreshed isn't clobbered on restart. garmy-sync mints its own
+          OAuth2 access token from this, so there's nothing else to paste.
+          Leave blank to manage /data/.garmy/ yourself.
   sync:
     name: Sync
     description: Garmin data sync schedule settings.

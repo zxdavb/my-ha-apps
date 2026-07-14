@@ -10,8 +10,8 @@ The server provides read-only MCP access to a local Garmy SQLite database so AI 
 
 This add-on runs headlessly and cannot complete Garmin's interactive MFA prompt, so it does not accept a Garmin email/password. Authenticate once elsewhere (interactively, where you can enter an MFA code), then get the resulting tokens into the add-on:
 
-1. Authenticate with `garmy` on any machine you control, producing `~/.garmy/oauth1_token.json` and `oauth2_token.json`.
-2. Paste the contents of those two files into `garmin.oauth1_token_json` and `garmin.oauth2_token_json` (see the README for the exact steps), or copy the token files directly into `/data/.garmy/`.
+1. Authenticate with `garmy` on any machine you control, producing `~/.garmy/oauth1_token.json`.
+2. Paste its contents into `garmin.oauth1_token_json` (see the README for the exact steps), or copy the token file(s) directly into `/data/.garmy/`.
 3. Set `database.path` (default `/data/health.db` is fine for most users).
 4. Start the app — the sync service runs immediately and then on the configured interval.
 
@@ -20,7 +20,7 @@ If the database does not exist yet, the add-on creates an empty one so the MCP s
 ## Important options
 
 - `database.path`: Path to the SQLite database file (default `/data/health.db`).
-- `garmin.oauth1_token_json` / `garmin.oauth2_token_json`: Paste the contents of `oauth1_token.json` and `oauth2_token.json` obtained via an interactive login elsewhere. Both files are (re)written only when `oauth1_token_json` changes (i.e. a fresh login), so tokens `garmy-sync` refreshes on disk aren't clobbered by config on every restart. See the README.
+- `garmin.oauth1_token_json`: Paste the contents of `oauth1_token.json` obtained via an interactive login elsewhere. `garmy-sync` mints its own OAuth2 access token from it, so no second field is needed. Written only when this value changes (i.e. a fresh login), so a token `garmy-sync` refreshes on disk isn't clobbered by config on every restart. See the README.
 - `sync.interval_hours`: Hours between sync runs (default `6`, max `168`).
 - `sync.history_days`: Days of history to sync on each run (default `7`, max `999`).
 - `mcp.host`: MCP server bind address (default `0.0.0.0`).

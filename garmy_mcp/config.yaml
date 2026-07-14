@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
 name: My Garmy MCP
-version: "2.0.0-ha16"
+version: "2.0.0-ha17"
 slug: garmy_mcp
 description: Garmin health data MCP server (read-only SQLite access for AI assistants).
 url: "https://github.com/zxdavb/garmy"
@@ -19,7 +19,6 @@ options:
     path: "/data/health.db"
   garmin:
     oauth1_token_json: ""
-    oauth2_token_json: ""
   sync:
     interval_hours: 6
     history_days: 7
@@ -33,7 +32,6 @@ schema:
     path: "str"
   garmin:
     oauth1_token_json: "password?"
-    oauth2_token_json: "password?"
   sync:
     interval_hours: "int(1,168)"
     history_days: "int(1,999)"

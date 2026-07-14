@@ -20,30 +20,26 @@ The add-on runs `garmy-sync` on a configurable schedule to pull data from Garmin
 
 Authenticate interactively once on any machine where you can enter an MFA code (a laptop, a dev container, etc.), then hand the resulting tokens to the add-on through its configuration — no SSH/Samba access to the Home Assistant host required.
 
-1. On that machine, install `garmy` and run its sync/auth flow (or any `garmy` login helper) so it prompts for your MFA code and completes login. This produces two files:
+1. On that machine, install `garmy` and run its sync/auth flow (or any `garmy` login helper) so it prompts for your MFA code and completes login. This produces two files, of which you only need the first:
 
    ```text
    ~/.garmy/oauth1_token.json
-   ~/.garmy/oauth2_token.json
+   ~/.garmy/oauth2_token.json   (not needed — see below)
    ```
 
-2. Open each file and copy its contents as-is (no need to combine or reformat them) into the matching add-on config field:
-   - `garmin.oauth1_token_json` ← contents of `oauth1_token.json`
-   - `garmin.oauth2_token_json` ← contents of `oauth2_token.json`
+2. Open `oauth1_token.json` and paste its contents as-is into `garmin.oauth1_token_json` in the add-on configuration. Start (or restart) the add-on.
 
-   Start (or restart) the add-on.
+You don't need `oauth2_token.json` at all: OAuth1 is the durable "login" credential, and `garmy-sync` mints its own short-lived OAuth2 access token from it on demand (`AuthClient.refresh_tokens()`), refreshing it again whenever it expires. Only the OAuth1 token ever needs to come from you.
 
-`garmin.oauth1_token_json` is the durable "login" credential — Garmin issues a fresh, short-lived OAuth2 access token from it as needed, but the OAuth1 token itself doesn't change. The add-on uses that fact to decide when to (re)write files from config, so it doesn't fight with `garmy-sync`'s own token refresh:
+`garmin.oauth1_token_json` also doubles as a change signal, so the add-on doesn't fight with that refresh cycle:
 
-- **First start, or `garmin.oauth1_token_json` has changed** (you pasted a new login): both `oauth1_token.json` and `oauth2_token.json` are written from config, overwriting whatever's on disk.
-- **`garmin.oauth1_token_json` is unchanged** since the last start: neither file is touched, so a token `garmy-sync` has refreshed in the meantime survives the restart.
+- **First start, or `garmin.oauth1_token_json` has changed** (you pasted a new login): `oauth1_token.json` is (re)written from config, and any existing `oauth2_token.json` is removed so a fresh one gets minted to match.
+- **`garmin.oauth1_token_json` is unchanged** since the last start: `/data/.garmy/` isn't touched, so the OAuth2 token `garmy-sync` has refreshed in the meantime survives the restart.
 - **`garmin.oauth1_token_json` is blank**: `/data/.garmy/` is left entirely alone (see Option B).
-
-`garmin.oauth2_token_json` only matters as the bootstrap value the first time a given `oauth1_token_json` is applied — after that, garmy-sync keeps `oauth2_token.json` fresh on disk on its own, and you can leave the field blank or full, it's ignored either way as long as `oauth1_token_json` hasn't changed.
 
 ### Option B — manual token copy
 
-If you have already run `garmy-sync` on another machine, copy the two token files directly instead of pasting them into the config UI. Make sure `garmin.oauth1_token_json` is blank, since a non-blank/changed value overwrites both files:
+If you have already run `garmy-sync` on another machine, copy the token file(s) directly instead of pasting into the config UI. Make sure `garmin.oauth1_token_json` is blank, since a non-blank/changed value overwrites `oauth1_token.json`:
 
 1. On the machine where you ran `garmy-sync`, locate the token directory (default `~/.garmy/`):
 
@@ -65,7 +61,7 @@ If you have already run `garmy-sync` on another machine, copy the two token file
 
 3. Restart the add-on.
 
-The OAuth2 refresh token typically lasts several months. When it eventually expires the add-on will log a warning and you will need to re-authenticate (interactively, elsewhere) and repeat Option A or B.
+The OAuth1 login typically stays valid for months. When it eventually expires, `garmy-sync`'s refresh will start failing, the add-on will log a warning, and you'll need to re-authenticate (interactively, elsewhere) and repeat Option A or B.
 
 ### Troubleshooting
 

@@ -1,19 +1,22 @@
 #!/usr/bin/with-contenv bashio
 # shellcheck shell=bash
 # ==============================================================================
-# Write Garmin OAuth token files from pasted config JSON, so accounts with
-# 2FA can be authenticated once (interactively, elsewhere) and the resulting
-# tokens handed to this headless add-on without SSH/Samba access.
+# Write the Garmin OAuth1 token file from pasted config JSON, so accounts
+# with 2FA can be authenticated once (interactively, elsewhere) and the
+# result handed to this headless add-on without SSH/Samba access.
 #
-# garmin.oauth1_token_json is the durable "login" credential: garmy-sync's
-# own token refresh (AuthClient.refresh_tokens()) mints new OAuth2 access
-# tokens from it but never rewrites it. We use it as a change signal: if it
-# matches what we wrote last time, /data/.garmy/ is left alone (so a token
-# refreshed since the last restart isn't clobbered by the older pasted
-# value); if it has changed (a fresh interactive login was pasted in), both
-# files are rewritten from config, since oauth2_token_json is only ever a
-# bootstrap value for a new login pair. Leave both fields blank to manage
-# /data/.garmy/ yourself (e.g. manually-copied token files).
+# OAuth1 is the durable "login" credential; garmy-sync-ha mints a fresh,
+# short-lived OAuth2 access token from it on demand (AuthClient.
+# refresh_tokens(), which needs nothing but a valid OAuth1 token), so
+# there's no need to also paste an OAuth2 token here.
+#
+# garmin.oauth1_token_json doubles as a change signal: if it matches what we
+# wrote last time, /data/.garmy/ is left alone (so an OAuth2 token refreshed
+# since the last restart isn't clobbered); if it has changed (a fresh
+# interactive login was pasted in), oauth1_token.json is rewritten and any
+# existing oauth2_token.json is removed, since it belonged to the old login
+# and garmy-sync-ha will mint a new one to match. Leave the field blank to
+# manage /data/.garmy/ yourself (e.g. manually-copied token files).
 # ==============================================================================
 
 set -euo pipefail
@@ -25,41 +28,6 @@ fi
 tokens_dir="/data/.garmy"
 mkdir -p "${tokens_dir}"
 fingerprint_file="${tokens_dir}/.oauth1_config_seeded"
-
-write_token_file() {
-    local filename="$1" option_name="$2" raw
-
-    if ! bashio::config.has_value "${option_name}"; then
-        bashio::log.warning "${option_name} is blank; ${filename} not written."
-        return 0
-    fi
-
-    raw="$(bashio::config "${option_name}")"
-    GARMY_TOKEN_JSON="${raw}" GARMY_TOKEN_FILE="${tokens_dir}/${filename}" GARMY_OPTION_NAME="${option_name}" python3 <<'EOF'
-import json
-import os
-import stat
-import sys
-from pathlib import Path
-
-raw = os.environ["GARMY_TOKEN_JSON"]
-path = Path(os.environ["GARMY_TOKEN_FILE"])
-option_name = os.environ["GARMY_OPTION_NAME"]
-
-try:
-    data = json.loads(raw)
-except json.JSONDecodeError as exc:
-    print(f"ERROR: {option_name} is not valid JSON: {exc}", file=sys.stderr)
-    sys.exit(1)
-if not isinstance(data, dict):
-    print(f"ERROR: {option_name} must be a JSON object.", file=sys.stderr)
-    sys.exit(1)
-
-path.write_text(json.dumps(data))
-path.chmod(stat.S_IRUSR | stat.S_IWUSR)
-print(f"Wrote {path} from {option_name}.")
-EOF
-}
 
 if ! bashio::config.has_value 'garmin.oauth1_token_json'; then
     bashio::log.debug "garmin.oauth1_token_json is blank; leaving ${tokens_dir} untouched."
@@ -75,9 +43,33 @@ fi
 if [[ "${oauth1_raw}" == "${previous_raw}" ]]; then
     bashio::log.debug "garmin.oauth1_token_json unchanged since last seed; leaving ${tokens_dir} untouched (preserves any token garmy-sync has refreshed)."
 else
-    bashio::log.info "garmin.oauth1_token_json is new or changed; (re)seeding tokens from config."
-    write_token_file "oauth1_token.json" "garmin.oauth1_token_json"
-    write_token_file "oauth2_token.json" "garmin.oauth2_token_json"
+    bashio::log.info "garmin.oauth1_token_json is new or changed; writing oauth1_token.json from config."
+
+    GARMY_TOKEN_JSON="${oauth1_raw}" GARMY_TOKEN_FILE="${tokens_dir}/oauth1_token.json" python3 <<'EOF'
+import json
+import os
+import stat
+import sys
+from pathlib import Path
+
+raw = os.environ["GARMY_TOKEN_JSON"]
+path = Path(os.environ["GARMY_TOKEN_FILE"])
+
+try:
+    data = json.loads(raw)
+except json.JSONDecodeError as exc:
+    print(f"ERROR: garmin.oauth1_token_json is not valid JSON: {exc}", file=sys.stderr)
+    sys.exit(1)
+if not isinstance(data, dict):
+    print("ERROR: garmin.oauth1_token_json must be a JSON object.", file=sys.stderr)
+    sys.exit(1)
+
+path.write_text(json.dumps(data))
+path.chmod(stat.S_IRUSR | stat.S_IWUSR)
+print(f"Wrote {path}.")
+EOF
+
+    rm -f "${tokens_dir}/oauth2_token.json"
     printf '%s' "${oauth1_raw}" > "${fingerprint_file}"
     chmod 600 "${fingerprint_file}"
 fi

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha17
+
+- Removed `garmin.oauth2_token_json`. `AuthClient.refresh_tokens()` derives a fresh OAuth2 access token purely from the OAuth1 token (`sso.exchange()`, which reads nothing from any existing OAuth2 token), and `AuthClient()` loads fine with `oauth2_token.json` entirely absent — so the field was redundant given the refresh fallback added in `ha13`. Pasting `garmin.oauth1_token_json` is now the only step required. When it changes (a fresh login), any existing `oauth2_token.json` is removed so a matching one gets minted rather than leaving one from the previous login in place.
+
 ## 2.0.0-ha16
 
 - Fixed: `garmy-sync`'s own token refresh (a fresh, short-lived OAuth2 access token minted from the long-lived OAuth1 token) was being clobbered on every add-on restart, since the token-seed step unconditionally rewrote both files from config every time. Now it only (re)writes both files from `garmin.oauth1_token_json`/`garmin.oauth2_token_json` when `oauth1_token_json` itself has changed since the last write (tracked via `/data/.garmy/.oauth1_config_seeded`) — i.e. only on a genuinely new pasted login. An unchanged `oauth1_token_json` leaves `/data/.garmy/` untouched, so whatever `garmy-sync` has refreshed on disk survives restarts.
