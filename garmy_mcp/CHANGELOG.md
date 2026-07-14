@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha10
+
+- Guarded `sync.interval_hours` in the sync loop against a non-numeric value, which was collapsing the sleep to 0 and retrying every couple of seconds instead of waiting between syncs.
+
 ## 2.0.0-ha9
 
 - Removed `garmin.email` and `garmin.password`; this add-on runs headlessly and cannot complete Garmin's interactive MFA prompt, so credential-based login never reliably worked for 2FA accounts.

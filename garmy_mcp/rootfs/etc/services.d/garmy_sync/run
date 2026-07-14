@@ -13,6 +13,10 @@ sync_days="$(bashio::config 'sync.history_days')"
 export GARMY_DB_PATH="${db_path}"
 export GARMY_SYNC_DAYS="${sync_days}"
 
+if ! [[ "${interval_hours}" =~ ^[0-9]+$ ]]; then
+    bashio::log.warning "sync.interval_hours ('${interval_hours}') is not a valid whole number; defaulting to 6."
+    interval_hours=6
+fi
 interval_seconds=$(( interval_hours * 3600 ))
 
 while true; do
