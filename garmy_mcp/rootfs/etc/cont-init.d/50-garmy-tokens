@@ -1,0 +1,63 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Seed Garmin OAuth token files from pasted config JSON, so accounts with 2FA
+# can be authenticated once (interactively, elsewhere) and the resulting
+# tokens handed to this headless add-on without SSH/Samba access.
+# ==============================================================================
+
+set -euo pipefail
+
+tokens_dir="/data/.garmy"
+mkdir -p "${tokens_dir}"
+
+if [[ -f "${tokens_dir}/oauth1_token.json" && -f "${tokens_dir}/oauth2_token.json" ]]; then
+    bashio::log.info "Garmin tokens already present in ${tokens_dir}; not seeding from config."
+    exit 0
+fi
+
+if ! bashio::config.has_value 'garmin.oauth1_token_json' || ! bashio::config.has_value 'garmin.oauth2_token_json'; then
+    exit 0
+fi
+
+GARMIN_OAUTH1_TOKEN_JSON="$(bashio::config 'garmin.oauth1_token_json')"
+GARMIN_OAUTH2_TOKEN_JSON="$(bashio::config 'garmin.oauth2_token_json')"
+export GARMIN_OAUTH1_TOKEN_JSON GARMIN_OAUTH2_TOKEN_JSON
+
+python3 <<'EOF'
+import json
+import os
+import stat
+import sys
+from pathlib import Path
+
+tokens_dir = Path("/data/.garmy")
+
+files = {
+    "oauth1_token.json": ("GARMIN_OAUTH1_TOKEN_JSON", "garmin.oauth1_token_json"),
+    "oauth2_token.json": ("GARMIN_OAUTH2_TOKEN_JSON", "garmin.oauth2_token_json"),
+}
+
+parsed = {}
+for filename, (env_var, option_name) in files.items():
+    raw = os.environ[env_var]
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        print(f"ERROR: {option_name} is not valid JSON: {exc}", file=sys.stderr)
+        sys.exit(1)
+    if not isinstance(data, dict):
+        print(f"ERROR: {option_name} must be a JSON object.", file=sys.stderr)
+        sys.exit(1)
+    parsed[filename] = data
+
+tokens_dir.mkdir(parents=True, exist_ok=True)
+for filename, data in parsed.items():
+    path = tokens_dir / filename
+    path.write_text(json.dumps(data))
+    path.chmod(stat.S_IRUSR | stat.S_IWUSR)
+
+print(f"Garmin tokens seeded from config into {tokens_dir}.")
+EOF
+
+unset GARMIN_OAUTH1_TOKEN_JSON GARMIN_OAUTH2_TOKEN_JSON

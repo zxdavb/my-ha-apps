@@ -14,15 +14,30 @@ This app installs `garmy[all]` from the fork repository into a virtualenv on top
 
 ## Garmin Connect authentication
 
-The add-on runs `garmy-sync` on a configurable schedule to pull data from Garmin Connect into the local SQLite database.
+The add-on runs `garmy-sync` on a configurable schedule to pull data from Garmin Connect into the local SQLite database. This add-on does **not** accept a Garmin email/password, since it starts headlessly and has no way to complete Garmin's interactive MFA prompt for 2FA-protected accounts. Authentication is token-only — choose one of the two options below.
 
-### Option A — credentials in add-on config (recommended)
+### Option A — paste tokens via the config UI (recommended)
 
-Set `garmin.email` and `garmin.password` in the add-on configuration. On first start the add-on authenticates with Garmin Connect, saves OAuth tokens to `/data/.garmy/`, and refreshes them automatically. Credentials are only used when the tokens are absent or expired.
+Authenticate interactively once on any machine where you can enter an MFA code (a laptop, a dev container, etc.), then hand the resulting tokens to the add-on through its configuration — no SSH/Samba access to the Home Assistant host required.
+
+1. On that machine, install `garmy` and run its sync/auth flow (or any `garmy` login helper) so it prompts for your MFA code and completes login. This produces two files:
+
+   ```text
+   ~/.garmy/oauth1_token.json
+   ~/.garmy/oauth2_token.json
+   ```
+
+2. Open each file and copy its contents as-is (no need to combine or reformat them) into the matching add-on config field:
+   - `garmin.oauth1_token_json` ← contents of `oauth1_token.json`
+   - `garmin.oauth2_token_json` ← contents of `oauth2_token.json`
+
+   Start (or restart) the add-on.
+
+On first start, the add-on writes these into `/data/.garmy/` and uses them from then on, refreshing automatically. The two `*_token_json` fields are only consulted when `/data/.garmy/oauth1_token.json` and `oauth2_token.json` don't already exist yet — they won't overwrite live tokens on later restarts. To force a re-seed (e.g. you pasted new tokens after the old ones expired), delete both files under `/data/.garmy/` first.
 
 ### Option B — manual token copy
 
-If you have already run `garmy-sync` on another machine (or prefer not to store credentials in the add-on), copy the two token files instead:
+If you have already run `garmy-sync` on another machine, copy the two token files directly instead of pasting them into the config UI:
 
 1. On the machine where you ran `garmy-sync`, locate the token directory (default `~/.garmy/`):
 
@@ -42,9 +57,9 @@ If you have already run `garmy-sync` on another machine (or prefer not to store 
 
    (The exact path varies by HA installation type; adjust `local_garmy_mcp` to match your add-on slug.)
 
-3. Leave `garmin.email` and `garmin.password` empty and restart the add-on.
+3. Restart the add-on.
 
-The OAuth2 refresh token typically lasts several months. When it eventually expires the add-on will log a warning and you will need to re-authenticate via Option A or repeat the token copy.
+The OAuth2 refresh token typically lasts several months. When it eventually expires the add-on will log a warning and you will need to re-authenticate (interactively, elsewhere) and repeat Option A or B.
 
 ## Authentication and External Proxy (NPM)
 

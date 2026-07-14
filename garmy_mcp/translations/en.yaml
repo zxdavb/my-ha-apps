@@ -8,14 +8,20 @@ configuration:
         description: Absolute path to the Garmy SQLite database file.
   garmin:
     name: Garmin Connect
-    description: Credentials for Garmin Connect. Leave empty if using manually copied token files.
+    description: Garmin Connect OAuth tokens. Leave both empty if you already copied token files directly into /data/.garmy/.
     fields:
-      email:
-        name: Email
-        description: Garmin Connect account email address.
-      password:
-        name: Password
-        description: Garmin Connect account password. Stored securely and used only to obtain OAuth tokens.
+      oauth1_token_json:
+        name: Pasted oauth1_token.json
+        description: >-
+          For 2FA accounts. Paste the full contents of oauth1_token.json,
+          produced by an interactive login elsewhere. Used only to seed
+          /data/.garmy/ once; ignored after tokens exist there.
+      oauth2_token_json:
+        name: Pasted oauth2_token.json
+        description: >-
+          For 2FA accounts. Paste the full contents of oauth2_token.json,
+          produced by an interactive login elsewhere. Used only to seed
+          /data/.garmy/ once; ignored after tokens exist there.
   sync:
     name: Sync
     description: Garmin data sync schedule settings.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.0-ha9
+
+- Removed `garmin.email` and `garmin.password`; this add-on runs headlessly and cannot complete Garmin's interactive MFA prompt, so credential-based login never reliably worked for 2FA accounts.
+- Added `garmin.oauth1_token_json` and `garmin.oauth2_token_json` config fields instead: paste the raw contents of `oauth1_token.json`/`oauth2_token.json` obtained from an interactive login elsewhere, and a new `cont-init.d` step seeds `/data/.garmy/` with them on first start (skipped once real token files exist).
+
 ## 2.0.0-ha8
 
 - Renamed `sync.days` to `sync.history_days` for clarity.

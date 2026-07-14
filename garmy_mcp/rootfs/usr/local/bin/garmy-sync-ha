@@ -2,7 +2,9 @@
 """Garmy sync wrapper for the Home Assistant add-on.
 
 Authenticates via stored tokens in $HOME/.garmy (= /data/.garmy when HOME=/data).
-Falls back to GARMIN_EMAIL / GARMIN_PASSWORD env vars only when no valid tokens exist.
+Tokens are seeded there by the garmy_tokens cont-init.d step (from pasted
+config) or copied in manually; this add-on runs headlessly and cannot
+complete an interactive Garmin login (email/password + MFA) on its own.
 """
 import os
 import sys
@@ -17,8 +19,6 @@ def main() -> int:
         return 1
 
     days = int(os.environ.get("GARMY_SYNC_DAYS", "7"))
-    email = os.environ.get("GARMIN_EMAIL", "")
-    password = os.environ.get("GARMIN_PASSWORD", "")
 
     from garmy.auth.client import AuthClient
     from garmy import APIClient
@@ -30,20 +30,14 @@ def main() -> int:
     auth = AuthClient()  # loads from ~/.garmy, which is /data/.garmy when HOME=/data
 
     if not auth.is_authenticated:
-        if not email or not password:
-            print(
-                "No valid Garmin tokens found and no credentials configured.\n"
-                "Set garmin.email and garmin.password in the add-on configuration,\n"
-                "or copy token files to /data/.garmy/ manually.",
-                file=sys.stderr,
-            )
-            return 2
-        print("Authenticating with Garmin Connect...")
-        auth.login(email, password)
-        auth.save_tokens()
-        print("Authentication successful; tokens saved to /data/.garmy/.")
-    else:
-        print("Using cached Garmin tokens.")
+        print(
+            "No valid Garmin tokens found.\n"
+            "Set garmin.oauth1_token_json and garmin.oauth2_token_json in the "
+            "add-on configuration, or copy token files to /data/.garmy/ manually.",
+            file=sys.stderr,
+        )
+        return 2
+    print("Using cached Garmin tokens.")
 
     db_path = Path(db_path_str)
     db_path.parent.mkdir(parents=True, exist_ok=True)
