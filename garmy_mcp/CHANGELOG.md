@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha20
+
+- Fixed a sync that could hang indefinitely with no error or further log output: `APIClient` was constructed without a `timeout`, so the underlying `requests` session had none at all, and a single stalled Garmin API call would block forever with no exception for the library's per-task error handling to catch. Now passes `timeout=30`, so a stuck request fails after 30s and is marked as a failed task rather than freezing the whole sync.
+
 ## 2.0.0-ha19
 
 - Fixed: per-day/per-metric sync progress (e.g. `[2026-01-01] sleep`, `[2026-01-01] heart_rate (skipped)`) was never appearing in the log. `garmy`'s `SyncManager`/`ProgressReporter` reports it via the standard `logging` module (`logger "garmy.sync"`, INFO level) rather than `print()`, and `garmy-sync-ha` never configured logging, so Python silently dropped every one of those records. Added `logging.basicConfig(...)` at INFO level. Root level is kept at INFO even under `advanced.debug_logging` (only the `garmy.sync` logger itself goes to DEBUG) so third-party HTTP libraries garmy uses internally don't start dumping full request/response detail, which can include Authorization headers/tokens.

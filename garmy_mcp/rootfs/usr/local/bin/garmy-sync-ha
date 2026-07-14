@@ -98,7 +98,11 @@ def main() -> int:
     progress = ProgressReporter(use_tqdm=False)
 
     manager = SyncManager(db_path=db_path, config=config, progress_reporter=progress)
-    manager.api_client = APIClient(auth_client=auth)
+    # Without an explicit timeout, the underlying requests session has none
+    # at all, so a single stalled Garmin API call can hang indefinitely with
+    # no exception ever raised for per-task error handling to catch -
+    # appearing as a frozen sync rather than a failed/skipped task.
+    manager.api_client = APIClient(auth_client=auth, timeout=30)
 
     try:
         manager.activities_iterator = ActivitiesIterator(
