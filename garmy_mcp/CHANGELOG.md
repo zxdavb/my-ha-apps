@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha18
+
+- Fixed leftover `garmin.oauth2_token_json` mentions in the sync loop's and `garmy-sync-ha`'s own log/error messages; that option was removed in `ha17`.
+
 ## 2.0.0-ha17
 
 - Removed `garmin.oauth2_token_json`. `AuthClient.refresh_tokens()` derives a fresh OAuth2 access token purely from the OAuth1 token (`sso.exchange()`, which reads nothing from any existing OAuth2 token), and `AuthClient()` loads fine with `oauth2_token.json` entirely absent — so the field was redundant given the refresh fallback added in `ha13`. Pasting `garmin.oauth1_token_json` is now the only step required. When it changes (a fresh login), any existing `oauth2_token.json` is removed so a matching one gets minted rather than leaving one from the previous login in place.

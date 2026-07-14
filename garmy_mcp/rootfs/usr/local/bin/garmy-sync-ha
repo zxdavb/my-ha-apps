@@ -73,8 +73,8 @@ def main() -> int:
     if not auth.is_authenticated:
         print(
             "No valid Garmin tokens found (and refresh failed or was not possible).\n"
-            "Set garmin.oauth1_token_json and garmin.oauth2_token_json in the "
-            "add-on configuration, or copy token files to /data/.garmy/ manually.",
+            "Set garmin.oauth1_token_json in the add-on configuration, "
+            "or copy token files to /data/.garmy/ manually.",
             file=sys.stderr,
         )
         return 2

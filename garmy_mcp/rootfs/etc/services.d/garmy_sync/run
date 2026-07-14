@@ -32,7 +32,7 @@ while true; do
         bashio::log.info "Garmy sync completed successfully."
     elif [[ ${code} -eq 2 ]]; then
         bashio::log.warning "Garmy sync skipped: no tokens available."
-        bashio::log.warning "Set garmin.oauth1_token_json/oauth2_token_json in config, or copy token files to /data/.garmy/."
+        bashio::log.warning "Set garmin.oauth1_token_json in config, or copy token files to /data/.garmy/."
     else
         bashio::log.warning "Garmy sync finished with errors (exit ${code})."
     fi
