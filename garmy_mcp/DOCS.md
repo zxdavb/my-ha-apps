@@ -25,6 +25,7 @@ If the database does not exist yet, the add-on creates an empty one so the MCP s
 - `sync.history_days`: Days of history to sync on each run (default `7`, max `90`).
 - `mcp.host`: MCP server bind address (default `0.0.0.0`).
 - `mcp.path`: URL path (default `/mcp`).
+- `advanced.debug_logging`: Enables bash `set -x` tracing plus token-file diagnostics in the log, for troubleshooting sync/auth issues. Noisy; leave off for normal use.
 
 ## Notes
 

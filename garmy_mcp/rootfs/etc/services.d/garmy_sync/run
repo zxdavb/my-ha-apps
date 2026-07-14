@@ -6,6 +6,12 @@
 
 export HOME="/data"
 
+if bashio::config.true 'advanced.debug_logging'; then
+    bashio::log.level "debug"
+    export GARMY_DEBUG=1
+    set -x
+fi
+
 db_path="$(bashio::config 'database.path')"
 interval_hours="$(bashio::config 'sync.interval_hours')"
 sync_days="$(bashio::config 'sync.history_days')"

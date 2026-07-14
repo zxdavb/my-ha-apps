@@ -42,3 +42,13 @@ configuration:
       path:
         name: URL path
         description: Endpoint path for the MCP HTTP endpoint, for example /mcp.
+  advanced:
+    name: Advanced
+    description: Diagnostics for troubleshooting.
+    fields:
+      debug_logging:
+        name: Debug logging
+        description: >-
+          Enable verbose shell tracing (set -x) and extra Garmin token
+          diagnostics in the add-on log. Leave off for normal use; the
+          output can be noisy and may include token file paths/sizes.

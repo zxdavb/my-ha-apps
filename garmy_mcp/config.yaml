@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
 name: My Garmy MCP
-version: "2.0.0-ha10"
+version: "2.0.0-ha11"
 slug: garmy_mcp
 description: Garmin health data MCP server (read-only SQLite access for AI assistants).
 url: "https://github.com/zxdavb/garmy"
@@ -26,6 +26,8 @@ options:
   mcp:
     host: "0.0.0.0"
     path: "/mcp"
+  advanced:
+    debug_logging: false
 schema:
   database:
     path: "str"
@@ -38,3 +40,5 @@ schema:
   mcp:
     host: "str"
     path: "str"
+  advanced:
+    debug_logging: "bool"

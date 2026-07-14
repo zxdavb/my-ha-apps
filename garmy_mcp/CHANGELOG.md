@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0-ha11
+
+- Added `advanced.debug_logging` config option: enables bash `set -x` tracing and Garmin token-file diagnostics (existence/size/JSON validity) across the sync service, MCP service, and token-seeding init step, to help diagnose auth/sync issues.
+
 ## 2.0.0-ha10
 
 - Guarded `sync.interval_hours` in the sync loop against a non-numeric value, which was collapsing the sleep to 0 and retrying every couple of seconds instead of waiting between syncs.

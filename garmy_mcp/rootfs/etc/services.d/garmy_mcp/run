@@ -6,6 +6,12 @@
 
 set -euo pipefail
 
+if bashio::config.true 'advanced.debug_logging'; then
+    bashio::log.level "debug"
+    export FASTMCP_LOG_LEVEL="DEBUG"
+    set -x
+fi
+
 db_path="$(bashio::config 'database.path')"
 # Fixed: FastMCP's HTTP transport is the only one this add-on supports.
 transport="streamable-http"

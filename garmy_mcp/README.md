@@ -61,6 +61,12 @@ If you have already run `garmy-sync` on another machine, copy the two token file
 
 The OAuth2 refresh token typically lasts several months. When it eventually expires the add-on will log a warning and you will need to re-authenticate (interactively, elsewhere) and repeat Option A or B.
 
+### Troubleshooting
+
+Set `advanced.debug_logging: true` in the add-on configuration and restart to get verbose shell tracing plus token-file diagnostics (existence, size, whether each file parses as JSON) in the add-on log. Leave it off otherwise — it's noisy and its output includes token file paths/sizes.
+
+Note that the token-seed step (`50-garmy-tokens`) only checks whether `/data/.garmy/oauth1_token.json` and `oauth2_token.json` already **exist** — not whether they're valid. If you're troubleshooting a failed sync and those files are already present (from an earlier attempt, or a stale/expired token), pasting new values into `garmin.oauth1_token_json`/`garmin.oauth2_token_json` will have **no effect** until you delete both files under `/data/.garmy/` and restart.
+
 ## Authentication and External Proxy (NPM)
 
 Recommended model: keep auth outside this app and front it with Nginx Proxy Manager (NPM).

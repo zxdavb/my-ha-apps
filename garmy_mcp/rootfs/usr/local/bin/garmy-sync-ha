@@ -6,10 +6,38 @@ Tokens are seeded there by the garmy_tokens cont-init.d step (from pasted
 config) or copied in manually; this add-on runs headlessly and cannot
 complete an interactive Garmin login (email/password + MFA) on its own.
 """
+import json
 import os
 import sys
 from datetime import date, timedelta
 from pathlib import Path
+
+DEBUG = os.environ.get("GARMY_DEBUG") == "1"
+
+
+def _debug(msg: str) -> None:
+    if DEBUG:
+        print(f"[debug] {msg}", file=sys.stderr)
+
+
+def _debug_token_files(tokens_dir: Path) -> None:
+    if not DEBUG:
+        return
+    _debug(f"tokens_dir={tokens_dir}")
+    for name in ("oauth1_token.json", "oauth2_token.json"):
+        path = tokens_dir / name
+        if not path.exists():
+            _debug(f"{name}: missing")
+            continue
+        st = path.stat()
+        _debug(f"{name}: exists, {st.st_size} bytes, mtime={st.st_mtime}")
+        try:
+            data = json.loads(path.read_text())
+        except Exception as exc:
+            _debug(f"{name}: JSON parse failed: {exc}")
+            continue
+        keys = list(data.keys()) if isinstance(data, dict) else type(data).__name__
+        _debug(f"{name}: valid JSON, keys={keys}")
 
 
 def main() -> int:
@@ -28,6 +56,8 @@ def main() -> int:
     from garmy.localdb.activities_iterator import ActivitiesIterator
 
     auth = AuthClient()  # loads from ~/.garmy, which is /data/.garmy when HOME=/data
+    _debug_token_files(Path(os.environ.get("HOME", "")) / ".garmy")
+    _debug(f"auth.is_authenticated={auth.is_authenticated}")
 
     if not auth.is_authenticated:
         print(
