@@ -33,11 +33,17 @@ Authenticate interactively once on any machine where you can enter an MFA code (
 
    Start (or restart) the add-on.
 
-Each field is written to its matching file (`garmin.oauth1_token_json` → `/data/.garmy/oauth1_token.json`, and likewise for oauth2) on **every** start, independently, overwriting whatever's already there. Leave a field blank to leave that file untouched — for example, once you're up and running you can clear both fields and the add-on will just keep using (and `garmy-sync` will keep refreshing) whatever's already on disk, without reverting it on the next restart.
+`garmin.oauth1_token_json` is the durable "login" credential — Garmin issues a fresh, short-lived OAuth2 access token from it as needed, but the OAuth1 token itself doesn't change. The add-on uses that fact to decide when to (re)write files from config, so it doesn't fight with `garmy-sync`'s own token refresh:
+
+- **First start, or `garmin.oauth1_token_json` has changed** (you pasted a new login): both `oauth1_token.json` and `oauth2_token.json` are written from config, overwriting whatever's on disk.
+- **`garmin.oauth1_token_json` is unchanged** since the last start: neither file is touched, so a token `garmy-sync` has refreshed in the meantime survives the restart.
+- **`garmin.oauth1_token_json` is blank**: `/data/.garmy/` is left entirely alone (see Option B).
+
+`garmin.oauth2_token_json` only matters as the bootstrap value the first time a given `oauth1_token_json` is applied — after that, garmy-sync keeps `oauth2_token.json` fresh on disk on its own, and you can leave the field blank or full, it's ignored either way as long as `oauth1_token_json` hasn't changed.
 
 ### Option B — manual token copy
 
-If you have already run `garmy-sync` on another machine, copy the two token files directly instead of pasting them into the config UI. Make sure `garmin.oauth1_token_json`/`garmin.oauth2_token_json` are blank, since a non-blank field overwrites the matching file on every start:
+If you have already run `garmy-sync` on another machine, copy the two token files directly instead of pasting them into the config UI. Make sure `garmin.oauth1_token_json` is blank, since a non-blank/changed value overwrites both files:
 
 1. On the machine where you ran `garmy-sync`, locate the token directory (default `~/.garmy/`):
 
