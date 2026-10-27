@@ -18,6 +18,7 @@ At minimum you usually need:
 ## Important options
 
 - `server.workspace_mcp_transport`: `streamable-http` is recommended.
+- `server.workspace_mcp_session_idle_timeout`: Seconds before an idle HTTP session is closed (default `3660`).
 - `tool_selection.workspace_mcp_tools`: Comma-separated services to expose.
 - `tool_selection.workspace_mcp_tool_tier`: `core`, `extended`, or `complete`.
 - `oauth21.mcp_enable_oauth21`: Enable OAuth 2.1 mode.

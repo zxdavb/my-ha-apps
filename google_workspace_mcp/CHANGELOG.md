@@ -1,3 +1,9 @@
+## 2.2.1-ha1
+
+- Updated upstream `workspace-mcp` from 1.21.2 to 2.2.1 (FastMCP 4, MCP Python SDK v2).
+- Added `server.workspace_mcp_session_idle_timeout` (default 3660 seconds) so abandoned sessions are closed.
+- Upstream breaking change: the Slides `get_page_thumbnail` tool was replaced by `render_page_to_image`.
+
 ## 1.21.2-ha3
 
 - Removed the legacy `access` option group; it only duplicated `authentication.single_user`.

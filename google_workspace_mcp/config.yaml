@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
 name: My Google Workspace MCP
-version: "1.21.2-ha3"
+version: "2.2.1-ha1"
 slug: google_workspace_mcp
 description: Google Workspace MCP app for Home Assistant
 url: "https://github.com/taylorwilsdon/google_workspace_mcp"
@@ -28,6 +28,7 @@ options:
     workspace_mcp_host: "0.0.0.0"
     workspace_mcp_port: 8000
     workspace_mcp_transport: "streamable-http"
+    workspace_mcp_session_idle_timeout: 3660
   tool_selection:
     workspace_mcp_tools: ""
     workspace_mcp_tool_tier: "extended"
@@ -62,6 +63,7 @@ schema:
     workspace_mcp_host: "str"
     workspace_mcp_port: "int"
     workspace_mcp_transport: "list(stdio|streamable-http)"
+    workspace_mcp_session_idle_timeout: "int(0,)?"
   tool_selection:
     workspace_mcp_tools: "str?"
     workspace_mcp_tool_tier: "list(core|extended|complete)"

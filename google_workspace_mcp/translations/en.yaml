@@ -47,6 +47,9 @@ configuration:
       workspace_mcp_transport:
         name: Transport
         description: MCP transport mode.
+      workspace_mcp_session_idle_timeout:
+        name: Session Idle Timeout
+        description: Seconds before an idle HTTP session is closed (0 defers to FastMCP, which never expires sessions).
   tool_selection:
     name: Tool Selection
     description: Tool filtering and permissions.
