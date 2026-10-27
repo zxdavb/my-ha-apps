@@ -104,10 +104,3 @@ configuration:
       allowed_file_dirs:
         name: Allowed File Directories
         description: Comma-separated allowed directories for disk tools.
-  access:
-    name: Access (Legacy)
-    description: Backward-compatible legacy access settings.
-    fields:
-      single_user:
-        name: Single-User Mode (Legacy)
-        description: Legacy location for single-user mode.

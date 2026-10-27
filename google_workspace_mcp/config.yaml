@@ -1,6 +1,6 @@
 # https://developers.home-assistant.io/docs/apps/configuration#app-configuration
 name: My Google Workspace MCP
-version: "1.21.2-ha2"
+version: "1.21.2-ha3"
 slug: google_workspace_mcp
 description: Google Workspace MCP app for Home Assistant
 url: "https://github.com/taylorwilsdon/google_workspace_mcp"
@@ -30,7 +30,7 @@ options:
     workspace_mcp_transport: "streamable-http"
   tool_selection:
     workspace_mcp_tools: ""
-    workspace_mcp_tool_tier: "core"
+    workspace_mcp_tool_tier: "extended"
     workspace_mcp_read_only: false
     workspace_mcp_permissions: ""
   oauth21:
@@ -46,8 +46,6 @@ options:
     workspace_mcp_allowed_client_redirect_uris: "https://claude.ai/api/mcp/auth_callback,https://claude.com/api/mcp/auth_callback"
   local_files:
     allowed_file_dirs: "/share"
-  access:
-    single_user: false
 schema:
   google_oauth_client_id: "str"
   google_oauth_client_secret: "password?"
@@ -82,5 +80,3 @@ schema:
     workspace_mcp_allowed_client_redirect_uris: "str?"
   local_files:
     allowed_file_dirs: "str?"
-  access:
-    single_user: "bool"

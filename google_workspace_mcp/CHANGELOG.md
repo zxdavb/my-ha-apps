@@ -1,3 +1,9 @@
+## 1.21.2-ha3
+
+- Removed the legacy `access` option group; it only duplicated `authentication.single_user`.
+- Changed the default `tool_selection.workspace_mcp_tool_tier` from `core` to `extended`.
+- Removed legacy config-key fallbacks from the start script; only the current option names are read.
+
 ## 1.21.2-ha2
 
 - Version bump only; no functional changes.
