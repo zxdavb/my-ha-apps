@@ -134,7 +134,7 @@ jobs:
           pr_number="${{ steps.cpr.outputs.pull-request-number }}"
           author="$(gh pr view "$pr_number" --json author -q '.author.login')"
 
-          if [ "$author" != "github-actions[bot]" ]; then
+          if [ "$author" != "app/github-actions" ] && [ "$author" != "github-actions[bot]" ]; then
             echo "safe=false" >> "$GITHUB_OUTPUT"
             echo "Refusing auto-merge: PR author is $author"
             exit 0
