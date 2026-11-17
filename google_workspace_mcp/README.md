@@ -12,6 +12,10 @@ Google Workspace MCP server app for Home Assistant.
 
 This app installs the `workspace-mcp[disk]` PyPI package into a virtualenv on top of the HA base image. The PyPI package is the canonical distribution artifact — no intermediate Docker image is used.
 
+## Guides
+
+- [Multiple mailboxes (multi-user mode)](MULTI_USER.md): using several Google accounts, including personal ones, and the limits of read-only mode.
+
 ## Wrapper references
 
 No intermediary wrapper repository is used for this app. Packaging is maintained directly in this repository against upstream project and PyPI releases.

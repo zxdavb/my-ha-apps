@@ -31,3 +31,4 @@ At minimum you usually need:
 - Credential files persist in `/data/google_workspace_credentials` by default.
 - By default local file reads are restricted to `/share` via `allowed_file_dirs`.
 - Upstream docs and behavior are maintained by the upstream project.
+- To use several Google accounts (multi-user mode), see [MULTI_USER.md](https://github.com/zxdavb/my-ha-apps/blob/main/google_workspace_mcp/MULTI_USER.md).
