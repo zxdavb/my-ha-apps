@@ -1,0 +1,51 @@
+configuration:
+  pairing:
+    name: Pairing
+    description: Optional alternative to scanning the QR code printed in the log.
+    fields:
+      phone_number:
+        name: Phone number for a pairing code
+        description: >-
+          Your WhatsApp number in international format, digits only (for
+          example 447700900123). When set and the device is not yet linked,
+          an 8-character pairing code is printed to the log; enter it on the
+          phone under Linked devices > Link a device > "Link with phone number
+          instead". Clear it once linked.
+  mcp:
+    name: MCP
+    description: MCP HTTP endpoint settings.
+    fields:
+      path:
+        name: URL path
+        description: >-
+          Endpoint path, for example /mcp. The endpoint has no authentication
+          of its own; a long random path adds obscurity but is not a substitute
+          for proxy authentication.
+      toolsets:
+        name: Toolsets
+        description: >-
+          Comma-separated tool groups to expose, or "all". Groups: core,
+          send, media, history, contacts_write, message_admin, groups,
+          presence, account_admin, newsletter. For read-only use, try
+          "core,history" (note core includes send_message).
+      tools:
+        name: Extra tools
+        description: >-
+          Comma-separated individual tool names to enable in addition to the
+          toolsets above, for example send_reaction.
+      allowed_hosts:
+        name: Allowed Host headers
+        description: >-
+          Host header values the MCP endpoint accepts, for example
+          mcp.example.com or homeassistant.local:*. Localhost is always
+          allowed. Leave empty to accept any Host header (DNS-rebinding
+          protection off).
+  advanced:
+    name: Advanced
+    description: Diagnostics for troubleshooting.
+    fields:
+      debug_logging:
+        name: Debug logging
+        description: Verbose logging for the app scripts and the MCP server.
+network:
+  8081/tcp: MCP HTTP endpoint (no built-in authentication)

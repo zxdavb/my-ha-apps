@@ -1,0 +1,81 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Optional pairing by phone-number code (alternative to the QR code).
+#
+# When pairing.phone_number is set and the bridge is not yet linked, ask the
+# bridge for an 8-character pairing code and print it to the log. Enter it on
+# the phone: WhatsApp > Linked devices > Link a device > "Link with phone
+# number instead". Each code is valid for about 160 seconds; up to three
+# codes are requested before giving up (restart the app to try again).
+# ==============================================================================
+
+set -uo pipefail
+
+idle() {
+    # Nothing (more) to do: stay up so s6 does not restart this service.
+    while true; do sleep 86400; done
+}
+
+if ! bashio::config.has_value 'pairing.phone_number'; then
+    idle
+fi
+
+phone="$(bashio::config 'pairing.phone_number' | tr -cd '0-9')"
+if [[ -z "${phone}" ]]; then
+    bashio::log.warning "pairing.phone_number has no digits; skipping pairing by code."
+    idle
+fi
+
+api="http://127.0.0.1:8080/api"
+key="$(cat /data/bridge_api_key)"
+
+bridge_get() {
+    curl -fsS --max-time 10 -H "X-API-Key: ${key}" "${api}$1"
+}
+
+# Wait for the bridge's REST API.
+until curl -fsS --max-time 5 "${api}/health" >/dev/null 2>&1; do
+    sleep 3
+done
+
+# Give the bridge a moment to load an existing session before deciding.
+sleep 10
+if [[ "$(bridge_get /connection | jq -r '.linked // false')" == "true" ]]; then
+    bashio::log.info "Device is already linked; pairing.phone_number is not needed and can be cleared."
+    idle
+fi
+
+for attempt in 1 2 3; do
+    response="$(curl -sS --max-time 30 -X POST \
+        -H "X-API-Key: ${key}" -H "Content-Type: application/json" \
+        -d "{\"phone_number\": \"${phone}\"}" "${api}/pair?force=true")"
+
+    if [[ "$(jq -r '.success // false' <<< "${response}")" != "true" ]]; then
+        bashio::log.error "Pairing code request failed: $(jq -r '.error // "unknown error"' <<< "${response}" 2>/dev/null || echo "${response}")"
+        idle
+    fi
+
+    code="$(jq -r '.code' <<< "${response}")"
+    expires="$(jq -r '.expires_in // 160' <<< "${response}")"
+    bashio::log.info "=========================================================="
+    bashio::log.info " WhatsApp pairing code (attempt ${attempt}/3): ${code}"
+    bashio::log.info " Phone: WhatsApp > Linked devices > Link a device >"
+    bashio::log.info "        'Link with phone number instead', then enter it."
+    bashio::log.info " Valid for about ${expires} seconds."
+    bashio::log.info "=========================================================="
+
+    deadline=$(( SECONDS + expires ))
+    while (( SECONDS < deadline )); do
+        sleep 5
+        if [[ "$(bridge_get /pairing | jq -r '.complete // false')" == "true" ]] \
+            || [[ "$(bridge_get /connection | jq -r '.linked // false')" == "true" ]]; then
+            bashio::log.info "Pairing complete. You can now clear pairing.phone_number."
+            idle
+        fi
+    done
+    bashio::log.warning "Pairing code expired."
+done
+
+bashio::log.warning "No pairing after 3 codes. Restart the app to try again, or scan the QR code instead."
+idle

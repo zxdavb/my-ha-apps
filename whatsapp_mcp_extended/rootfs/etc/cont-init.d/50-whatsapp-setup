@@ -1,0 +1,20 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Prepare persistent storage and the internal bridge API key.
+#
+# The bridge's REST API listens on 127.0.0.1 only, so this key never leaves
+# the container: it just stops anything else in the container from talking
+# to the bridge unauthenticated. It is generated once and kept in /data.
+# ==============================================================================
+
+set -euo pipefail
+
+mkdir -p /data/store
+
+key_file="/data/bridge_api_key"
+if [[ ! -s "${key_file}" ]]; then
+    bashio::log.info "Generating internal bridge API key..."
+    (umask 077 && head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' > "${key_file}")
+fi
+chmod 600 "${key_file}"

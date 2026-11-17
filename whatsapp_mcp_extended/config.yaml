@@ -1,0 +1,35 @@
+# https://developers.home-assistant.io/docs/apps/configuration#app-configuration
+name: My WhatsApp MCP Extended
+version: "0.4.0-ha1"
+slug: whatsapp_mcp_extended
+description: WhatsApp MCP server (whatsmeow bridge + MCP over HTTP) for AI assistants.
+url: "https://github.com/FelixIsaac/whatsapp-mcp-extended"
+arch:
+  - amd64
+init: false
+apparmor: false
+ports:
+  8081/tcp: null
+ports_description:
+  8081/tcp: MCP HTTP endpoint (unauthenticated - see docs before publishing)
+options:
+  pairing:
+    phone_number: ""
+  mcp:
+    path: "/mcp"
+    toolsets: "all"
+    tools: ""
+    allowed_hosts: []
+  advanced:
+    debug_logging: false
+schema:
+  pairing:
+    phone_number: "match(^\\+?[0-9 ]*$)?"
+  mcp:
+    path: "match(^/.*)"
+    toolsets: "str"
+    tools: "str?"
+    allowed_hosts:
+      - "str"
+  advanced:
+    debug_logging: "bool"

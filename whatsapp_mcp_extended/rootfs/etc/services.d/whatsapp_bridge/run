@@ -1,0 +1,27 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Start the WhatsApp bridge (Go, whatsmeow).
+#
+# It keeps the linked-device session, writes messages to /data/store, and
+# serves a REST API on 127.0.0.1:8080 that only the MCP server uses. On first
+# start it prints a pairing QR code to this log. If it stays disconnected for
+# more than 3 minutes it exits on purpose, and s6 restarts it.
+# ==============================================================================
+
+set -euo pipefail
+
+if bashio::config.true 'advanced.debug_logging'; then
+    bashio::log.level "debug"
+fi
+
+API_KEY="$(cat /data/bridge_api_key)"
+export API_KEY
+export API_BIND_HOST="127.0.0.1"
+export API_PORT="8080"
+
+# The bridge resolves ./store relative to its working directory.
+cd /data
+
+bashio::log.info "Starting WhatsApp bridge..."
+exec whatsapp-bridge
