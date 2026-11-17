@@ -45,6 +45,14 @@ _Garmin health data MCP server for Home Assistant._
 
 Upstream: [zxdavb/garmy](https://github.com/zxdavb/garmy) (fork of [bes-dev/garmy](https://github.com/bes-dev/garmy))
 
+### [WhatsApp MCP Extended](./whatsapp_mcp_extended)
+
+![Supports amd64 Architecture][amd64-shield]
+
+_WhatsApp MCP server (bridge + MCP over HTTP) for Home Assistant._
+
+Upstream: [FelixIsaac/whatsapp-mcp-extended](https://github.com/FelixIsaac/whatsapp-mcp-extended)
+
 ## License
 
 This repository is licensed under the MIT License. See [LICENSE](./LICENSE).

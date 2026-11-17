@@ -1,0 +1,56 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Start the WhatsApp MCP server (Python, streamable HTTP on port 8081).
+#
+# It reads /data/store/messages.db directly and calls the bridge's local REST
+# API for anything that talks to WhatsApp (sending, media, groups...).
+# ==============================================================================
+
+set -euo pipefail
+
+if bashio::config.true 'advanced.debug_logging'; then
+    bashio::log.level "debug"
+    export DEBUG="true"
+fi
+
+path="$(bashio::config 'mcp.path')"
+toolsets="$(bashio::config 'mcp.toolsets')"
+tools=""
+if bashio::config.has_value 'mcp.tools'; then
+    tools="$(bashio::config 'mcp.tools')"
+fi
+allowed_hosts=""
+for h in $(bashio::config 'mcp.allowed_hosts'); do
+    # bashio prints "null" for an unset/empty list
+    [[ "${h}" == "null" ]] && continue
+    allowed_hosts+="${allowed_hosts:+,}${h}"
+done
+if [[ -z "${allowed_hosts}" ]]; then
+    bashio::log.warning "mcp.allowed_hosts is empty: requests with any Host header are accepted."
+fi
+
+# Upstream refuses to start until the bridge has created messages.db.
+db="/data/store/messages.db"
+waited=0
+until [[ -f "${db}" ]]; do
+    if (( waited % 30 == 0 )); then
+        bashio::log.info "Waiting for the bridge to create ${db}..."
+    fi
+    sleep 2
+    waited=$(( waited + 2 ))
+done
+
+API_KEY="$(cat /data/bridge_api_key)"
+export API_KEY
+export BRIDGE_HOST="127.0.0.1:8080"
+export WA_STORE_PATH="/data/store"
+# Must match the container-side port in config.yaml's `ports:` map.
+export PORT="8081"
+export MCP_PATH="${path}"
+export MCP_ALLOWED_HOSTS="${allowed_hosts}"
+export WHATSAPP_MCP_TOOLSETS="${toolsets}"
+export WHATSAPP_MCP_TOOLS="${tools}"
+
+bashio::log.info "Starting WhatsApp MCP server on port ${PORT}, path ${path} (toolsets: ${toolsets})"
+exec whatsapp-mcp-launch

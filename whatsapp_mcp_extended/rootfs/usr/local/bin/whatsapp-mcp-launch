@@ -1,0 +1,46 @@
+#!/opt/venv/bin/python3
+"""Launch upstream's WhatsApp MCP server with the app's HTTP settings.
+
+Upstream main.py builds `FastMCP("whatsapp-extended")` with the SDK's explicit
+defaults (host 127.0.0.1, path /mcp), so FASTMCP_* environment variables are
+ignored, and the SDK turns on DNS-rebinding protection that only accepts a
+`Host: localhost` header. Behind Home Assistant's port mapping or a reverse
+proxy that rejects every request with HTTP 421.
+
+Rather than patch upstream files, this imports main.py unchanged (its
+`if __name__ == "__main__"` block does not run on import) and sets the
+settings on the resulting `mcp` object before starting it.
+"""
+
+import os
+import sys
+
+from mcp.server.transport_security import TransportSecuritySettings
+
+SERVER_DIR = "/opt/whatsapp-mcp-server"
+LOCAL_HOSTS = ["127.0.0.1:*", "localhost:*", "[::1]:*"]
+LOCAL_ORIGINS = ["http://127.0.0.1:*", "http://localhost:*", "http://[::1]:*"]
+
+os.chdir(SERVER_DIR)
+sys.path.insert(0, SERVER_DIR)
+
+import main  # noqa: E402  (upstream module; defines the tools on main.mcp)
+
+settings = main.mcp.settings
+settings.host = "0.0.0.0"
+settings.port = int(os.environ["PORT"])
+settings.streamable_http_path = os.environ["MCP_PATH"]
+
+allowed_hosts = [h.strip() for h in os.environ.get("MCP_ALLOWED_HOSTS", "").split(",") if h.strip()]
+if allowed_hosts:
+    settings.transport_security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=LOCAL_HOSTS + allowed_hosts,
+        allowed_origins=LOCAL_ORIGINS + [f"https://{h.removesuffix(':*')}" for h in allowed_hosts],
+    )
+    print(f"MCP Host-header check enabled; allowed hosts: {', '.join(allowed_hosts)} (plus localhost)", flush=True)
+else:
+    settings.transport_security = TransportSecuritySettings(enable_dns_rebinding_protection=False)
+    print("MCP Host-header check disabled (mcp.allowed_hosts is empty)", flush=True)
+
+main.mcp.run(transport="streamable-http")
