@@ -19,6 +19,8 @@ API_KEY="$(cat /data/bridge_api_key)"
 export API_KEY
 export API_BIND_HOST="127.0.0.1"
 export API_PORT="8080"
+# Current QR code for the pairing page (patch 0002); tmpfs-like, not /data.
+export WA_QR_FILE="/tmp/whatsapp-qr/code"
 # Optional manual override of the WhatsApp Web client version (see DOCS.md).
 if bashio::config.has_value 'advanced.wa_client_version'; then
     WA_CLIENT_VERSION="$(bashio::config 'advanced.wa_client_version')"

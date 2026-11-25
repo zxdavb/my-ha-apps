@@ -7,6 +7,9 @@ url: "https://github.com/FelixIsaac/whatsapp-mcp-extended"
 arch:
   - amd64
 init: false
+ingress: true
+ingress_port: 8099
+panel_icon: mdi:qrcode
 apparmor: false
 ports:
   8081/tcp: null

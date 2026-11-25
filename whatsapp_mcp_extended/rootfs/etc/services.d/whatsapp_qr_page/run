@@ -1,0 +1,13 @@
+#!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+# ==============================================================================
+# Serve the pairing page (QR code as an image) on the ingress port, for
+# "Open Web UI". The Home Assistant log viewer's line spacing breaks the
+# text QR code. Only the ingress proxy may connect.
+# ==============================================================================
+
+set -euo pipefail
+
+export WA_QR_FILE="/tmp/whatsapp-qr/code"
+export QR_PAGE_PORT="8099"
+exec whatsapp-qr-page

@@ -12,6 +12,10 @@ set -euo pipefail
 
 mkdir -p /data/store
 
+# Current QR code for the pairing page; cleared on every start.
+rm -rf /tmp/whatsapp-qr
+(umask 077 && mkdir -p /tmp/whatsapp-qr)
+
 key_file="/data/bridge_api_key"
 if [[ ! -s "${key_file}" ]]; then
     bashio::log.info "Generating internal bridge API key..."

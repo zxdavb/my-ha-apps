@@ -4,7 +4,8 @@
 
 - QR pairing: when the QR codes run out (about 2.5 minutes after start), the bridge now requests a fresh set straight away. Before, it printed nothing for about 15 minutes and then restarted, so you had to restart the app if you missed the first codes.
 - QR pairing errors (for example `err-client-outdated`) are now logged instead of silently ignored.
-- Both come from the new `patches/0002-bridge-qr-refresh.patch`.
+- New pairing page (**Open Web UI**, through Home Assistant ingress) that shows the current QR code as an image and refreshes itself. The QR code printed in the log often can't be scanned because the log viewer adds space between lines.
+- The bridge changes come from the new `patches/0002-bridge-qr-refresh.patch`.
 
 ## 0.4.0-ha3
 

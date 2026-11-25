@@ -42,6 +42,7 @@ RUN grep -vE "^gradio" /opt/whatsapp-mcp-server/requirements.txt > /tmp/requirem
     && python3 -m venv /opt/venv \
     && /opt/venv/bin/pip install --no-cache-dir --upgrade pip \
     && /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt \
+    && /opt/venv/bin/pip install --no-cache-dir segno==1.6.6 \
     && rm -rf /opt/whatsapp-mcp-server/tests /tmp/requirements.txt
 
 ENV PATH="/opt/venv/bin:${PATH}"

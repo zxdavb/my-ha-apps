@@ -28,7 +28,9 @@ before marking itself disconnected, and the bridge watchdog restarted it about
 3 minutes later. This loops to request a fresh QR channel until paired, unless
 phone-code pairing is in progress (that path is unchanged). It also checks
 the `GetQRChannel` error, which upstream ignored (a nil channel would block
-forever), and logs QR events other than `code`/`success`/`timeout`.
+forever), and logs QR events other than `code`/`success`/`timeout`. When
+`WA_QR_FILE` is set, it writes the current QR code string there (removed once
+the set ends) for the app's pairing page.
 
 ### Regenerating after a whatsmeow bump
 

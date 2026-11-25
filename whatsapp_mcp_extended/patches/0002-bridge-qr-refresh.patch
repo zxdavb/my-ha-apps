@@ -1,8 +1,8 @@
 diff --git a/whatsapp-bridge/internal/whatsapp/client.go b/whatsapp-bridge/internal/whatsapp/client.go
-index 49dc1aa..713fc36 100644
+index 49dc1aa..c932d63 100644
 --- a/whatsapp-bridge/internal/whatsapp/client.go
 +++ b/whatsapp-bridge/internal/whatsapp/client.go
-@@ -184,22 +184,56 @@ func (c *Client) Connect() error {
+@@ -184,22 +184,58 @@ func (c *Client) Connect() error {
  	connected := make(chan bool, 1)
  
  	if c.Store.ID == nil {
@@ -38,6 +38,7 @@ index 49dc1aa..713fc36 100644
 +				case whatsmeow.QRChannelEventCode:
 +					fmt.Println("\nScan this QR code with your WhatsApp app:")
 +					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
++					writeQRFile(evt.Code)
 +				case whatsmeow.QRChannelSuccess.Event:
 +					paired = true
 +				case whatsmeow.QRChannelTimeout.Event:
@@ -50,6 +51,7 @@ index 49dc1aa..713fc36 100644
 +					}
 +				}
 +			}
++			removeQRFile()
 +			if paired {
  				connected <- true
  				break
@@ -71,3 +73,31 @@ index 49dc1aa..713fc36 100644
  		}
  
  		// Wait for connection (via either QR scan or phone pairing code)
+@@ -734,3 +770,27 @@ func (c *Client) HandlePairingError(err error) {
+ func (c *Client) Antiban() *antiban.SendInterceptor {
+ 	return c.antiban
+ }
++
++// writeQRFile stores the current QR code string at $WA_QR_FILE, if set, so
++// something else (e.g. a web page) can render it. No-op when unset.
++func writeQRFile(code string) {
++	path := os.Getenv("WA_QR_FILE")
++	if path == "" {
++		return
++	}
++	tmp := path + ".tmp"
++	if err := os.WriteFile(tmp, []byte(code), 0o600); err != nil {
++		fmt.Fprintf(os.Stderr, "failed to write QR file: %v\n", err)
++		return
++	}
++	if err := os.Rename(tmp, path); err != nil {
++		fmt.Fprintf(os.Stderr, "failed to write QR file: %v\n", err)
++	}
++}
++
++// removeQRFile deletes $WA_QR_FILE once its codes are no longer valid.
++func removeQRFile() {
++	if path := os.Getenv("WA_QR_FILE"); path != "" {
++		_ = os.Remove(path)
++	}
++}
