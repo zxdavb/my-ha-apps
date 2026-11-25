@@ -37,6 +37,13 @@ If the phone unlinks the device, restart the app to pair again.
 - `mcp.tools`: individual tool names to enable on top of the toolsets.
 - `mcp.allowed_hosts`: `Host` header values to accept (for example `mcp.example.com`, or `homeassistant.local:*` for any port). Localhost is always accepted. When this is empty (default), any `Host` is accepted and DNS-rebinding protection is off. If it's set and requests fail with `421 Invalid Host header`, add the host your client or proxy actually sends.
 - `advanced.debug_logging`: verbose logging.
+- `advanced.wa_client_version`: leave empty. See *Client outdated (405)* below.
+
+## Troubleshooting: `Client outdated (405)`
+
+If the log shows `Client outdated (405) connect failure` and no QR code ever appears, WhatsApp has rejected the client version the bridge announces.
+
+At startup the bridge looks up the current WhatsApp Web version from `web.whatsapp.com` and logs a line like `[ha] WhatsApp client version 2.3000.1056191857 (web.whatsapp.com; ...)`. If that lookup failed (the line says `app fallback` or `whatsmeow built-in`), set `advanced.wa_client_version` to a current version and restart. The newest version used by [whatsmeow](https://github.com/tulir/whatsmeow/blob/main/store/clientpayload.go) is a good source.
 
 ## Notes
 

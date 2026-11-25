@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0-ha2
+
+- Fix `Client outdated (405)`: WhatsApp no longer accepts the client version in upstream's pinned whatsmeow, so the bridge never offered a QR or pairing code. A packaging-only Go file now sets the current WhatsApp Web version at startup (fetched from `web.whatsapp.com`, with a baked-in fallback). No upstream files are modified.
+- New option `advanced.wa_client_version` to set the version manually if the automatic lookup fails.
+
 ## 0.4.0-ha1
 
 - Initial release, packaging upstream `whatsapp-mcp-extended` 0.4.0 at commit `be73e8c0f087`.

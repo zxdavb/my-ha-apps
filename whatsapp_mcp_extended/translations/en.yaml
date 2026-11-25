@@ -47,5 +47,11 @@ configuration:
       debug_logging:
         name: Debug logging
         description: Verbose logging for the app scripts and the MCP server.
+      wa_client_version:
+        name: WhatsApp client version override
+        description: >-
+          Leave empty. Only set this if the log shows "Client outdated (405)"
+          and the automatic version lookup failed: enter the current WhatsApp
+          Web version, for example 2.3000.1056191857.
 network:
   8081/tcp: MCP HTTP endpoint (no built-in authentication)

@@ -18,6 +18,7 @@ The image builds the upstream Go bridge from source, installs the upstream Pytho
 - **Single container:** the bridge and MCP server run as two s6 services. The bridge API listens only on `127.0.0.1:8080`, using an internal API key that is generated once and stored in `/data/bridge_api_key`.
 - **Launcher:** upstream's `main.py` builds its MCP server object with hard-coded defaults, so `FASTMCP_*` environment variables are ignored. The MCP SDK then only accepts `Host: localhost` and answers everything else with `421 Invalid Host header`. `whatsapp-mcp-launch` imports `main.py` unchanged and sets the path and `Host` check from the app options before starting it.
 - **Port not published:** port `8081` is not published by default.
+- **WhatsApp client version:** `bridge-overlay/zz_ha_waversion.go` is added to the bridge's `main` package at build time. Its `init()` sets the WhatsApp Web version that whatsmeow announces, because the version in upstream's pinned whatsmeow is rejected with `Client outdated (405)`. Newer whatsmeow commits change APIs the bridge uses, so bumping the library is not an option without upstream changes.
 
 ## Authentication and external proxy (NPM)
 

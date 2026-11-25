@@ -18,6 +18,9 @@ RUN git init -q . \
 FROM golang:1.26-alpine AS bridge
 RUN apk add --no-cache build-base
 COPY --from=source /src/whatsapp-bridge /src/whatsapp-bridge
+# Packaging-only Go file (init() that sets the WhatsApp Web client version);
+# no upstream files are modified. See bridge-overlay/zz_ha_waversion.go.
+COPY bridge-overlay/ /src/whatsapp-bridge/
 WORKDIR /src/whatsapp-bridge
 RUN go mod download \
     && CGO_ENABLED=1 go build -trimpath -ldflags "-s -w" -o /out/whatsapp-bridge .
