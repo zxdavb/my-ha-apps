@@ -32,6 +32,16 @@ forever), and logs QR events other than `code`/`success`/`timeout`. When
 `WA_QR_FILE` is set, it writes the current QR code string there (removed once
 the set ends) for the app's pairing page.
 
+## 0003-bridge-log-privacy.patch
+
+Applies on top of 0002. Upstream hard-codes the bridge log level to INFO and
+logs, at INFO, every history-synced message in full ("Stored message: ...",
+"Message content: ..."), the contact name/number behind each incoming message
+("Getting name for contact", "Using contact name"), group renames and calls.
+These go to DEBUG, and `BRIDGE_LOG_LEVEL` (DEBUG/INFO/WARN/ERROR, default INFO,
+anything else falls back to INFO) sets the level. The app sets DEBUG only
+when `advanced.debug_logging` is on.
+
 ### Regenerating after a whatsmeow bump
 
 ```bash

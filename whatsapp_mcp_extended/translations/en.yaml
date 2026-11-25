@@ -46,7 +46,10 @@ configuration:
     fields:
       debug_logging:
         name: Debug logging
-        description: Verbose logging for the app scripts and the MCP server.
+        description: >-
+          Verbose logging for the app scripts, the bridge and the MCP server.
+          The bridge then logs message text, contact names and phone numbers,
+          so leave this off except while troubleshooting.
       wa_client_version:
         name: WhatsApp client version override
         description: >-

@@ -17,6 +17,7 @@ The MCP endpoint has **no authentication**. Anyone who can reach it can read you
 
 - Port `8081` is **not published** by default. Enable it only if you need it, and put authentication in front of it (see the README).
 - `/data` holds your WhatsApp session keys and message history, and Home Assistant backups include it. Treat backups accordingly.
+- `advanced.debug_logging` makes the bridge log message text, contact names and phone numbers. Leave it off except while troubleshooting.
 - In your MCP client, require confirmation for sending tools instead of "always allow".
 
 ## First start: linking WhatsApp

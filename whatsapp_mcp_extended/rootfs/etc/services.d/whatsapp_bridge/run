@@ -11,8 +11,11 @@
 
 set -euo pipefail
 
+# Patch 0003 logs message content, contact names and numbers at DEBUG only.
+export BRIDGE_LOG_LEVEL="INFO"
 if bashio::config.true 'advanced.debug_logging'; then
     bashio::log.level "debug"
+    export BRIDGE_LOG_LEVEL="DEBUG"
 fi
 
 API_KEY="$(cat /data/bridge_api_key)"
