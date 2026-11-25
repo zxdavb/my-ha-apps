@@ -2,7 +2,10 @@
 
 ## 0.4.0-ha2
 
-- Fix `Client outdated (405)`: WhatsApp no longer accepts the client version in upstream's pinned whatsmeow, so the bridge never offered a QR or pairing code. A packaging-only Go file now sets the current WhatsApp Web version at startup (fetched from `web.whatsapp.com`, with a baked-in fallback). No upstream files are modified.
+- Fix `Client outdated (405)`: WhatsApp no longer accepts the client version in the whatsmeow commit upstream pins (2026-07-22), so the bridge never offered a QR or pairing code.
+  - `patches/0001-bridge-update-whatsmeow.patch` updates whatsmeow to 2026-11-24 and ports the bridge to its changed APIs (blocklist, About text). This also brings four months of whatsmeow reliability fixes.
+  - Setting the About text falls back to the legacy request when WhatsApp rejects the newer one (tulir/whatsmeow#1331).
+  - At startup the bridge also fetches the current WhatsApp Web version from `web.whatsapp.com`, so it keeps working when WhatsApp retires versions between whatsmeow updates.
 - New option `advanced.wa_client_version` to set the version manually if the automatic lookup fails.
 
 ## 0.4.0-ha1

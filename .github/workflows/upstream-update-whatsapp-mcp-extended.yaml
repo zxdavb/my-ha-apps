@@ -111,6 +111,28 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Check packaging patches still apply
+        if: steps.updater.outputs.changed == 'true'
+        id: patches
+        run: |
+          ref="$(sed -n 's/^ARG WHATSAPP_MCP_REF=//p' whatsapp_mcp_extended/Dockerfile)"
+          src="$(mktemp -d)"
+          git -C "${src}" init -q
+          git -C "${src}" remote add origin https://github.com/FelixIsaac/whatsapp-mcp-extended.git
+          git -C "${src}" fetch -q --depth 1 origin "${ref}"
+          git -C "${src}" checkout -q FETCH_HEAD
+          ok=true
+          for p in whatsapp_mcp_extended/patches/*.patch; do
+            [ -e "${p}" ] || continue
+            if git -C "${src}" apply --check "${GITHUB_WORKSPACE}/${p}"; then
+              echo "- patch applies: \`${p##*/}\`" >> /tmp/upstream-update-summary.txt
+            else
+              ok=false
+              echo "- **patch no longer applies: \`${p##*/}\`** (regenerate it; see whatsapp_mcp_extended/patches/README.md)" >> /tmp/upstream-update-summary.txt
+            fi
+          done
+          echo "ok=${ok}" >> "$GITHUB_OUTPUT"
+
       - name: Show update summary
         run: cat /tmp/upstream-update-summary.txt
 
@@ -135,6 +157,12 @@ jobs:
         run: |
           pr_number="${{ steps.cpr.outputs.pull-request-number }}"
           author="$(gh pr view "$pr_number" --json author -q '.author.login')"
+
+          if [ "${{ steps.patches.outputs.ok }}" != "true" ]; then
+            echo "safe=false" >> "$GITHUB_OUTPUT"
+            echo "Refusing auto-merge: a packaging patch no longer applies"
+            exit 0
+          fi
 
           if [ "$author" != "app/github-actions" ] && [ "$author" != "github-actions[bot]" ]; then
             echo "safe=false" >> "$GITHUB_OUTPUT"

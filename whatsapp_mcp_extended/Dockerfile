@@ -13,6 +13,10 @@ RUN git init -q . \
     && git remote add origin https://github.com/FelixIsaac/whatsapp-mcp-extended.git \
     && git fetch -q --depth 1 origin "${WHATSAPP_MCP_REF}" \
     && git checkout -q FETCH_HEAD
+# Packaging patches (see patches/README.md). Fails the build if one no longer
+# applies, e.g. after an upstream bump.
+COPY patches/ /patches/
+RUN for p in /patches/*.patch; do echo "Applying ${p##*/}"; git apply "${p}"; done
 
 # ---------- stage 2: build the Go bridge (go-sqlite3 needs CGO) ----------
 FROM golang:1.26-alpine AS bridge
