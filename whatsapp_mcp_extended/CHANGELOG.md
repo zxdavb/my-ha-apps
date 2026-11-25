@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.0-ha5
+
+- Privacy: the bridge no longer writes message text, contact names or phone numbers to the app log. Upstream logged every history-synced message in full, plus the contact behind each incoming message and each call, at INFO. These lines are now DEBUG (`patches/0003-bridge-log-privacy.patch`) and only appear with `advanced.debug_logging` on. Lines already written stay in Home Assistant's system log until it rotates.
+- Pairing page: read the link status from the bridge's unauthenticated `/api/health` instead of `/api/connection`. The bridge writes an `[AUDIT]` line for every authenticated request, so with the page open the app log got one every 5 seconds, pushing the QR codes out of view.
+
 ## 0.4.0-ha4
 
 - QR pairing: when the QR codes run out (about 2.5 minutes after start), the bridge now requests a fresh set straight away. Before, it printed nothing for about 15 minutes and then restarted, so you had to restart the app if you missed the first codes.

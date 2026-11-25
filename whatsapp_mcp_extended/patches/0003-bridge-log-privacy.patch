@@ -1,0 +1,151 @@
+diff --git a/whatsapp-bridge/internal/whatsapp/handlers.go b/whatsapp-bridge/internal/whatsapp/handlers.go
+index 07cd272..bc591e3 100644
+--- a/whatsapp-bridge/internal/whatsapp/handlers.go
++++ b/whatsapp-bridge/internal/whatsapp/handlers.go
+@@ -29,7 +29,7 @@ func (c *Client) GetChatName(messageStore *database.MessageStore, jid types.JID,
+ 	err := messageStore.GetDB().QueryRow("SELECT name FROM chats WHERE jid = ?", chatJID).Scan(&existingName)
+ 	if err == nil && existingName != "" && !isPhoneNumber(existingName) {
+ 		// Chat exists with a real name, use that
+-		c.logger.Infof("Using existing chat name for %s: %s", chatJID, existingName)
++		c.logger.Debugf("Using existing chat name for %s: %s", chatJID, existingName)
+ 		return existingName
+ 	}
+ 
+@@ -38,7 +38,7 @@ func (c *Client) GetChatName(messageStore *database.MessageStore, jid types.JID,
+ 
+ 	if jid.Server == "g.us" {
+ 		// This is a group chat
+-		c.logger.Infof("Getting name for group: %s", chatJID)
++		c.logger.Debugf("Getting name for group: %s", chatJID)
+ 
+ 		// Use conversation data if provided (from history sync)
+ 		if conversation != nil {
+@@ -82,10 +82,10 @@ func (c *Client) GetChatName(messageStore *database.MessageStore, jid types.JID,
+ 			}
+ 		}
+ 
+-		c.logger.Infof("Using group name: %s", name)
++		c.logger.Debugf("Using group name: %s", name)
+ 	} else {
+ 		// This is an individual contact
+-		c.logger.Infof("Getting name for contact: %s", chatJID)
++		c.logger.Debugf("Getting name for contact: %s", chatJID)
+ 
+ 		// Use priority fallback: FullName > PushName > FirstName > BusinessName
+ 		contact, err := c.Store.Contacts.GetContact(context.Background(), jid)
+@@ -110,7 +110,7 @@ func (c *Client) GetChatName(messageStore *database.MessageStore, jid types.JID,
+ 			}
+ 		}
+ 
+-		c.logger.Infof("Using contact name: %s", name)
++		c.logger.Debugf("Using contact name: %s", name)
+ 	}
+ 
+ 	return name
+@@ -265,7 +265,7 @@ func (c *Client) HandleHistorySync(messageStore *database.MessageStore, historyS
+ 				}
+ 
+ 				// Log the message content for debugging
+-				c.logger.Infof("Message content: %v, Media Type: %v", content, mediaType)
++				c.logger.Debugf("Message content: %v, Media Type: %v", content, mediaType)
+ 
+ 				// Skip messages with no content and no media
+ 				if content == "" && mediaType == "" {
+@@ -313,10 +313,10 @@ func (c *Client) HandleHistorySync(messageStore *database.MessageStore, historyS
+ 					syncedCount++
+ 					// Log successful message storage
+ 					if mediaType != "" {
+-						c.logger.Infof("Stored message: [%s] %s -> %s: [%s: %s] %s",
++						c.logger.Debugf("Stored message: [%s] %s -> %s: [%s: %s] %s",
+ 							timestamp.Format("2006-01-02 15:04:05"), sender, chatJID, mediaType, filename, content)
+ 					} else {
+-						c.logger.Infof("Stored message: [%s] %s -> %s: %s",
++						c.logger.Debugf("Stored message: [%s] %s -> %s: %s",
+ 							timestamp.Format("2006-01-02 15:04:05"), sender, chatJID, content)
+ 					}
+ 				}
+diff --git a/whatsapp-bridge/main.go b/whatsapp-bridge/main.go
+index 401889f..19390a0 100644
+--- a/whatsapp-bridge/main.go
++++ b/whatsapp-bridge/main.go
+@@ -5,6 +5,7 @@ import (
+ 	"fmt"
+ 	"os"
+ 	"os/signal"
++	"strings"
+ 	"sync"
+ 	"syscall"
+ 	"time"
+@@ -89,7 +90,17 @@ func fireConnectionEvent(wm *webhook.Manager, client *whatsapp.Client, eventType
+ 
+ func main() {
+ 	// Set up logger
+-	logger := waLog.Stdout("Client", "INFO", true)
++	// BRIDGE_LOG_LEVEL (DEBUG, INFO, WARN, ERROR) defaults to INFO. Lines with
++	// message content, contact names or numbers are logged at DEBUG.
++	logLevel := strings.ToUpper(strings.TrimSpace(os.Getenv("BRIDGE_LOG_LEVEL")))
++	switch logLevel {
++	case "DEBUG", "INFO", "WARN", "ERROR":
++	default:
++		// whatsmeow treats an unknown level as DEBUG; don't let a typo
++		// expose message content.
++		logLevel = "INFO"
++	}
++	logger := waLog.Stdout("Client", logLevel, true)
+ 	logger.Infof("Starting WhatsApp client...")
+ 
+ 	// Security: Require API_KEY in production
+@@ -149,7 +160,7 @@ func main() {
+ 				if err := messageStore.RenameChat(v.JID.String(), v.Name.Name); err != nil {
+ 					logger.Warnf("Failed to rename chat %s: %v", v.JID, err)
+ 				} else {
+-					logger.Infof("Renamed chat %s to %s", v.JID, v.Name.Name)
++					logger.Debugf("Renamed chat %s to %s", v.JID, v.Name.Name)
+ 				}
+ 			}
+ 
+@@ -278,7 +289,7 @@ func main() {
+ 				chatJID = resolvedJID.String()
+ 				chatResolvedJID = resolvedJID
+ 			}
+-			logger.Infof("[CALL] CallOffer from %s (CallID: %s, isFromMe: %v)", callFrom, v.CallID, fromMe)
++			logger.Debugf("[CALL] CallOffer from %s (CallID: %s, isFromMe: %v)", callFrom, v.CallID, fromMe)
+ 			name := client.GetChatName(messageStore, chatResolvedJID, chatJID, nil, callFrom)
+ 			var content string
+ 			if fromMe {
+@@ -309,7 +320,7 @@ func main() {
+ 				chatJID = resolvedJID.String()
+ 				chatResolvedJID = resolvedJID
+ 			}
+-			logger.Infof("[CALL] CallOfferNotice from %s (CallID: %s, Media: %s)", callFrom, v.CallID, v.Media)
++			logger.Debugf("[CALL] CallOfferNotice from %s (CallID: %s, Media: %s)", callFrom, v.CallID, v.Media)
+ 			name := client.GetChatName(messageStore, chatResolvedJID, chatJID, nil, callFrom)
+ 			var content string
+ 			if fromMe {
+@@ -329,7 +340,7 @@ func main() {
+ 
+ 		case *events.CallAccept:
+ 			resolvedJID := resolveCallJID(client, logger, v.From)
+-			logger.Infof("[CALL] CallAccept from %s (CallID: %s)", resolvedJID.User, v.CallID)
++			logger.Debugf("[CALL] CallAccept from %s (CallID: %s)", resolvedJID.User, v.CallID)
+ 			activeCallsMu.Lock()
+ 			if call, exists := activeCalls[v.CallID]; exists {
+ 				call.Timestamp = v.Timestamp
+@@ -338,7 +349,7 @@ func main() {
+ 
+ 		case *events.CallTerminate:
+ 			resolvedJID := resolveCallJID(client, logger, v.From)
+-			logger.Infof("[CALL] CallTerminate from %s (CallID: %s, Reason: %s)", resolvedJID.User, v.CallID, v.Reason)
++			logger.Debugf("[CALL] CallTerminate from %s (CallID: %s, Reason: %s)", resolvedJID.User, v.CallID, v.Reason)
+ 			activeCallsMu.Lock()
+ 			call, exists := activeCalls[v.CallID]
+ 			if exists {
+@@ -361,7 +372,7 @@ func main() {
+ 
+ 		case *events.CallReject:
+ 			resolvedJID := resolveCallJID(client, logger, v.From)
+-			logger.Infof("[CALL] CallReject from %s (CallID: %s)", resolvedJID.User, v.CallID)
++			logger.Debugf("[CALL] CallReject from %s (CallID: %s)", resolvedJID.User, v.CallID)
+ 			activeCallsMu.Lock()
+ 			call, exists := activeCalls[v.CallID]
+ 			if exists {
