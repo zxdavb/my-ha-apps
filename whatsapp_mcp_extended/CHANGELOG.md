@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0-ha3
+
+- Fix "Invalid configuration" on start and on save: the new `advanced.wa_client_version` option rejected its own empty default.
+
 ## 0.4.0-ha2
 
 - Fix `Client outdated (405)`: WhatsApp no longer accepts the client version in the whatsmeow commit upstream pins (2026-07-22), so the bridge never offered a QR or pairing code.
