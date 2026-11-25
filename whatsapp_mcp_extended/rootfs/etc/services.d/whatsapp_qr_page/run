@@ -9,5 +9,6 @@
 set -euo pipefail
 
 export WA_QR_FILE="/tmp/whatsapp-qr/code"
+# Home Assistant's default ingress_port (config.yaml leaves it unset).
 export QR_PAGE_PORT="8099"
 exec whatsapp-qr-page
