@@ -2,14 +2,14 @@
 
 ## 0.4.0-ha3
 
-- Fix "Invalid configuration" on start and on save: the new `advanced.wa_client_version` option rejected its own empty default.
+- Fix "Invalid configuration" on start and on save: `advanced.wa_client_version` (added in ha2) rejected its own empty default.
+- Update the bridge's WhatsApp library (whatsmeow) from 2026-07-22 to 2026-11-24 via `patches/0001-bridge-update-whatsmeow.patch`, and port the bridge to its changed APIs (blocklist, About text). This brings four months of whatsmeow fixes and WhatsApp version updates. Upstream still pins the old whatsmeow.
+  - Setting the About text falls back to the legacy request when WhatsApp rejects the newer one (tulir/whatsmeow#1331).
+- The startup version lookup from ha2 stays, so the bridge keeps working when WhatsApp retires versions between whatsmeow updates.
 
 ## 0.4.0-ha2
 
-- Fix `Client outdated (405)`: WhatsApp no longer accepts the client version in the whatsmeow commit upstream pins (2026-07-22), so the bridge never offered a QR or pairing code.
-  - `patches/0001-bridge-update-whatsmeow.patch` updates whatsmeow to 2026-11-24 and ports the bridge to its changed APIs (blocklist, About text). This also brings four months of whatsmeow reliability fixes.
-  - Setting the About text falls back to the legacy request when WhatsApp rejects the newer one (tulir/whatsmeow#1331).
-  - At startup the bridge also fetches the current WhatsApp Web version from `web.whatsapp.com`, so it keeps working when WhatsApp retires versions between whatsmeow updates.
+- Fix `Client outdated (405)`: WhatsApp no longer accepts the client version in upstream's pinned whatsmeow, so the bridge never offered a QR or pairing code. A packaging-only Go file now sets the current WhatsApp Web version at startup (fetched from `web.whatsapp.com`, with a baked-in fallback). No upstream files are modified.
 - New option `advanced.wa_client_version` to set the version manually if the automatic lookup fails.
 
 ## 0.4.0-ha1
