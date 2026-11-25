@@ -1,0 +1,137 @@
+name: whatsmeow watch - whatsapp_mcp_extended
+
+# whatsmeow (the WhatsApp library inside the bridge) has no releases, and
+# WhatsApp retires old client versions every few weeks ("Client outdated
+# (405)"). This opens - or refreshes - one issue when whatsmeow has moved
+# past the version our patch pins, and notes when upstream
+# (FelixIsaac/whatsapp-mcp-extended) has caught up so the patch can go.
+
+on:
+  schedule:
+    - cron: "17 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: whatsmeow-watch
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Compare pinned whatsmeow with latest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Compare versions
+        id: compare
+        run: |
+          python3 <<'PY'
+          import json
+          import os
+          import pathlib
+          import re
+          import urllib.request
+
+          app = pathlib.Path("whatsapp_mcp_extended")
+
+          def get(url, accept_json=True):
+              req = urllib.request.Request(url, headers={"User-Agent": "whatsmeow-watch"})
+              with urllib.request.urlopen(req, timeout=30) as resp:
+                  data = resp.read().decode("utf-8")
+              return json.loads(data) if accept_json else data
+
+          def whatsmeow_in(go_mod_text, prefix=""):
+              m = re.search(rf"^{re.escape(prefix)}\s*go\.mau\.fi/whatsmeow (\S+)$", go_mod_text, re.M)
+              return m.group(1) if m else None
+
+          def commit_of(pseudo):
+              # v0.0.0-YYYYMMDDhhmmss-<12 hex>
+              return pseudo.rsplit("-", 1)[-1]
+
+          def date_of(pseudo):
+              ts = pseudo.split("-")[1]
+              return f"{ts[:4]}-{ts[4:6]}-{ts[6:8]}"
+
+          patch = (app / "patches" / "0001-bridge-update-whatsmeow.patch").read_text(encoding="utf-8")
+          ours = whatsmeow_in(patch, prefix="+")
+          if not ours:
+              raise RuntimeError("Could not find the whatsmeow version in the patch")
+
+          latest = get("https://proxy.golang.org/go.mau.fi/whatsmeow/@latest")["Version"]
+
+          dockerfile = (app / "Dockerfile").read_text(encoding="utf-8")
+          ref = re.search(r"^ARG WHATSAPP_MCP_REF=(\S+)$", dockerfile, re.M).group(1)
+          upstream_head = get("https://api.github.com/repos/FelixIsaac/whatsapp-mcp-extended/commits/main")["sha"]
+          upstream_mod = get(
+              f"https://raw.githubusercontent.com/FelixIsaac/whatsapp-mcp-extended/{upstream_head}/whatsapp-bridge/go.mod",
+              accept_json=False,
+          )
+          upstream = whatsmeow_in(upstream_mod)
+
+          behind = 0
+          proto_bumps = 0
+          if commit_of(ours) != commit_of(latest):
+              cmp = get(f"https://api.github.com/repos/tulir/whatsmeow/compare/{commit_of(ours)}...{commit_of(latest)}")
+              behind = cmp.get("ahead_by", 0)
+              proto_bumps = sum(
+                  1 for c in cmp.get("commits", [])
+                  if c["commit"]["message"].startswith("proto: update")
+              )
+
+          upstream_caught_up = upstream is not None and date_of(upstream) >= date_of(ours)
+
+          stale = commit_of(ours) != commit_of(latest)
+          lines = [
+              "whatsmeow has moved past the version that `whatsapp_mcp_extended` builds with."
+              if stale else
+              "`whatsapp_mcp_extended` builds with the latest whatsmeow.",
+              "",
+              "| | whatsmeow | date |",
+              "| --- | --- | --- |",
+              f"| Ours (patches/0001-bridge-update-whatsmeow.patch) | `{commit_of(ours)}` | {date_of(ours)} |",
+              f"| Latest | `{commit_of(latest)}` | {date_of(latest)} |",
+              f"| Upstream MCP (`FelixIsaac/whatsapp-mcp-extended@{upstream_head[:12]}`) | `{commit_of(upstream) if upstream else '?'}` | {date_of(upstream) if upstream else '?'} |",
+              "",
+              f"- {behind} commits behind, of which {proto_bumps} are `proto: update` (WhatsApp version bumps).",
+              f"- Compare: https://github.com/tulir/whatsmeow/compare/{commit_of(ours)}...{commit_of(latest)}",
+              f"- Our pinned upstream MCP commit: `{ref[:12]}`.",
+              "",
+              "The bridge also fetches the current WhatsApp Web version at startup, so a lag here is",
+              "not urgent unless the app log shows `Client outdated (405)` or other connection errors.",
+              "",
+              "To update, follow *Regenerating after a whatsmeow bump* in",
+              "`whatsapp_mcp_extended/patches/README.md`, then bump the app version.",
+          ]
+          if upstream_caught_up:
+              lines += [
+                  "",
+                  "**Upstream now pins whatsmeow at least as new as our patch.** Consider dropping the",
+                  "patch (after an upstream-update PR moves `WHATSAPP_MCP_REF` past that change).",
+              ]
+
+          pathlib.Path("/tmp/whatsmeow-issue.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write(f"stale={'true' if stale else 'false'}\n")
+              out.write(f"upstream_caught_up={'true' if upstream_caught_up else 'false'}\n")
+          print("\n".join(lines))
+          PY
+
+      - name: Open or refresh issue
+        if: steps.compare.outputs.stale == 'true' || steps.compare.outputs.upstream_caught_up == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "whatsapp_mcp_extended: whatsmeow update available"
+        run: |
+          number="$(gh issue list --state open --search "in:title \"${TITLE}\"" --json number,title \
+            -q ".[] | select(.title == env.TITLE) | .number" | head -n1)"
+          if [ -n "${number}" ]; then
+            gh issue edit "${number}" --body-file /tmp/whatsmeow-issue.md
+            echo "Refreshed issue #${number}"
+          else
+            gh issue create --title "${TITLE}" --body-file /tmp/whatsmeow-issue.md
+          fi

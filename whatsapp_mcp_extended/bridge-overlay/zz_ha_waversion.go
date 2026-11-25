@@ -2,9 +2,10 @@
 //
 // whatsmeow hard-codes the WhatsApp Web client version it announces. When
 // WhatsApp retires that version, every connection fails with
-// "Client outdated (405)" and no QR/pairing code is ever offered. Upstream
-// pins a whatsmeow commit whose version is retired, and newer whatsmeow
-// commits change APIs the bridge uses, so the library cannot simply be bumped.
+// "Client outdated (405)" and no QR/pairing code is ever offered. The patch in
+// patches/ updates whatsmeow, but WhatsApp retires versions every few weeks,
+// so between whatsmeow updates/rebuilds this keeps the announced version
+// current.
 //
 // This init() runs before main() and sets the announced version, in order:
 //  1. WA_CLIENT_VERSION env var ("2.3000.N" or just "N"), if set;
@@ -25,7 +26,8 @@ import (
 	"go.mau.fi/whatsmeow/store"
 )
 
-// Bumped by the app packaging; matches whatsmeow master as of 2026-11-16.
+// Bumped by the app packaging; matches the whatsmeow commit in
+// patches/0001-bridge-update-whatsmeow.patch (2026-11-24).
 const haFallbackRevision = 1054751086
 
 func init() {
