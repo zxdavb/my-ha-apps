@@ -20,12 +20,24 @@ the three call sites whose whatsmeow API changed:
 Intended to be offered upstream (FelixIsaac/whatsapp-mcp-extended). Drop it
 once upstream carries an equivalent change.
 
+## 0002-bridge-qr-refresh.patch
+
+Applies on top of 0001. Upstream's `Connect()` reads one whatsmeow QR channel,
+which ends after ~6 codes (about 2.5 minutes). It then waited up to 15 minutes
+before marking itself disconnected, and the bridge watchdog restarted it about
+3 minutes later. This loops to request a fresh QR channel until paired, unless
+phone-code pairing is in progress (that path is unchanged). It also checks
+the `GetQRChannel` error, which upstream ignored (a nil channel would block
+forever), and logs QR events other than `code`/`success`/`timeout`. When
+`WA_QR_FILE` is set, it writes the current QR code string there (removed once
+the set ends) for the app's pairing page.
+
 ### Regenerating after a whatsmeow bump
 
 ```bash
 git clone https://github.com/FelixIsaac/whatsapp-mcp-extended.git && cd whatsapp-mcp-extended
 git checkout <WHATSAPP_MCP_REF>
-git apply ../patches/0001-bridge-update-whatsmeow.patch
+git apply ../patches/0001-bridge-update-whatsmeow.patch  # then commit, so 0002 can be regenerated separately
 cd whatsapp-bridge && go get go.mau.fi/whatsmeow@latest && go mod tidy && go build ./... && go test ./...
 cd .. && git diff -- whatsapp-bridge > ../patches/0001-bridge-update-whatsmeow.patch
 ```

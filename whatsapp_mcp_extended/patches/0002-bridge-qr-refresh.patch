@@ -1,0 +1,103 @@
+diff --git a/whatsapp-bridge/internal/whatsapp/client.go b/whatsapp-bridge/internal/whatsapp/client.go
+index 49dc1aa..c932d63 100644
+--- a/whatsapp-bridge/internal/whatsapp/client.go
++++ b/whatsapp-bridge/internal/whatsapp/client.go
+@@ -184,22 +184,58 @@ func (c *Client) Connect() error {
+ 	connected := make(chan bool, 1)
+ 
+ 	if c.Store.ID == nil {
+-		// No ID stored, this is a new client, need to pair with phone
+-		qrChan, _ := c.GetQRChannel(context.Background())
+-		err := c.Client.Connect()
+-		if err != nil {
+-			return fmt.Errorf("failed to connect: %v", err)
+-		}
++		// No ID stored, this is a new client, need to pair with phone.
++		// whatsmeow's QR channel ends after ~6 codes (about 2.5 minutes);
++		// request a fresh set until paired, unless phone-code pairing has
++		// taken over.
++		for {
++			qrChan, err := c.GetQRChannel(context.Background())
++			if err != nil {
++				return fmt.Errorf("failed to get QR channel: %v", err)
++			}
++			if err := c.Client.Connect(); err != nil {
++				return fmt.Errorf("failed to connect: %v", err)
++			}
+ 
+-		// Print QR code for pairing with phone
+-		for evt := range qrChan {
+-			if evt.Event == "code" {
+-				fmt.Println("\nScan this QR code with your WhatsApp app:")
+-				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
+-			} else if evt.Event == "success" {
++			// Print QR code for pairing with phone
++			paired := false
++			for evt := range qrChan {
++				switch evt.Event {
++				case whatsmeow.QRChannelEventCode:
++					fmt.Println("\nScan this QR code with your WhatsApp app:")
++					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
++					writeQRFile(evt.Code)
++				case whatsmeow.QRChannelSuccess.Event:
++					paired = true
++				case whatsmeow.QRChannelTimeout.Event:
++					// Codes ran out or the socket closed; handled below.
++				default:
++					if evt.Error != nil {
++						c.logger.Warnf("QR pairing event %q: %v", evt.Event, evt.Error)
++					} else {
++						c.logger.Warnf("QR pairing event %q", evt.Event)
++					}
++				}
++			}
++			removeQRFile()
++			if paired {
+ 				connected <- true
+ 				break
+ 			}
++
++			c.pairingMutex.Lock()
++			inProg := c.pairingInProgress
++			c.pairingMutex.Unlock()
++			if c.Store.ID != nil || inProg {
++				// Paired (or pairing) by phone code; wait for it below.
++				break
++			}
++
++			fmt.Println("\nQR codes expired; requesting new ones...")
++			if c.IsConnected() {
++				c.Client.Disconnect()
++			}
++			time.Sleep(3 * time.Second)
+ 		}
+ 
+ 		// Wait for connection (via either QR scan or phone pairing code)
+@@ -734,3 +770,27 @@ func (c *Client) HandlePairingError(err error) {
+ func (c *Client) Antiban() *antiban.SendInterceptor {
+ 	return c.antiban
+ }
++
++// writeQRFile stores the current QR code string at $WA_QR_FILE, if set, so
++// something else (e.g. a web page) can render it. No-op when unset.
++func writeQRFile(code string) {
++	path := os.Getenv("WA_QR_FILE")
++	if path == "" {
++		return
++	}
++	tmp := path + ".tmp"
++	if err := os.WriteFile(tmp, []byte(code), 0o600); err != nil {
++		fmt.Fprintf(os.Stderr, "failed to write QR file: %v\n", err)
++		return
++	}
++	if err := os.Rename(tmp, path); err != nil {
++		fmt.Fprintf(os.Stderr, "failed to write QR file: %v\n", err)
++	}
++}
++
++// removeQRFile deletes $WA_QR_FILE once its codes are no longer valid.
++func removeQRFile() {
++	if path := os.Getenv("WA_QR_FILE"); path != "" {
++		_ = os.Remove(path)
++	}
++}
