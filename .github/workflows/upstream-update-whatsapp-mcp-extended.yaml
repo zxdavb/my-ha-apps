@@ -124,7 +124,8 @@ jobs:
           ok=true
           for p in whatsapp_mcp_extended/patches/*.patch; do
             [ -e "${p}" ] || continue
-            if git -C "${src}" apply --check "${GITHUB_WORKSPACE}/${p}"; then
+            # Apply for real, in order: later patches build on earlier ones (as in the Dockerfile).
+            if git -C "${src}" apply "${GITHUB_WORKSPACE}/${p}"; then
               echo "- patch applies: \`${p##*/}\`" >> /tmp/upstream-update-summary.txt
             else
               ok=false

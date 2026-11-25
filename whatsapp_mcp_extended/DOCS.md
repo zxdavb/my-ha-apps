@@ -23,7 +23,7 @@ The MCP endpoint has **no authentication**. Anyone who can reach it can read you
 
 1. Start the app and open the **Log** tab.
 2. Link it as a device, using either method:
-   - **QR code:** scan the QR code printed in the log with WhatsApp > Settings > Linked devices > Link a device. It refreshes about every 20 seconds.
+   - **QR code:** scan the QR code printed in the log with WhatsApp > Settings > Linked devices > Link a device. It refreshes about every 20 seconds, and a fresh set follows when a set runs out (the log says `QR codes expired; requesting new ones...`). Scan the newest one.
    - **Pairing code:** if the QR code doesn't render properly in the log, set `pairing.phone_number` to your number (international format, digits only, for example `447700900123`) and restart. An 8-character code appears in the log. On the phone, choose *Link with phone number instead* and enter it. Clear the option once linked.
 3. History sync then runs in the background and can take several minutes on a busy account.
 

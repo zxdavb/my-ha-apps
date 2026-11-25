@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0-ha4
+
+- QR pairing: when the QR codes run out (about 2.5 minutes after start), the bridge now requests a fresh set straight away. Before, it printed nothing for about 15 minutes and then restarted, so you had to restart the app if you missed the first codes.
+- QR pairing errors (for example `err-client-outdated`) are now logged instead of silently ignored.
+- Both come from the new `patches/0002-bridge-qr-refresh.patch`.
+
 ## 0.4.0-ha3
 
 - Fix "Invalid configuration" on start and on save: `advanced.wa_client_version` (added in ha2) rejected its own empty default.

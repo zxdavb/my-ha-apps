@@ -1,0 +1,73 @@
+diff --git a/whatsapp-bridge/internal/whatsapp/client.go b/whatsapp-bridge/internal/whatsapp/client.go
+index 49dc1aa..713fc36 100644
+--- a/whatsapp-bridge/internal/whatsapp/client.go
++++ b/whatsapp-bridge/internal/whatsapp/client.go
+@@ -184,22 +184,56 @@ func (c *Client) Connect() error {
+ 	connected := make(chan bool, 1)
+ 
+ 	if c.Store.ID == nil {
+-		// No ID stored, this is a new client, need to pair with phone
+-		qrChan, _ := c.GetQRChannel(context.Background())
+-		err := c.Client.Connect()
+-		if err != nil {
+-			return fmt.Errorf("failed to connect: %v", err)
+-		}
++		// No ID stored, this is a new client, need to pair with phone.
++		// whatsmeow's QR channel ends after ~6 codes (about 2.5 minutes);
++		// request a fresh set until paired, unless phone-code pairing has
++		// taken over.
++		for {
++			qrChan, err := c.GetQRChannel(context.Background())
++			if err != nil {
++				return fmt.Errorf("failed to get QR channel: %v", err)
++			}
++			if err := c.Client.Connect(); err != nil {
++				return fmt.Errorf("failed to connect: %v", err)
++			}
+ 
+-		// Print QR code for pairing with phone
+-		for evt := range qrChan {
+-			if evt.Event == "code" {
+-				fmt.Println("\nScan this QR code with your WhatsApp app:")
+-				qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
+-			} else if evt.Event == "success" {
++			// Print QR code for pairing with phone
++			paired := false
++			for evt := range qrChan {
++				switch evt.Event {
++				case whatsmeow.QRChannelEventCode:
++					fmt.Println("\nScan this QR code with your WhatsApp app:")
++					qrterminal.GenerateHalfBlock(evt.Code, qrterminal.L, os.Stdout)
++				case whatsmeow.QRChannelSuccess.Event:
++					paired = true
++				case whatsmeow.QRChannelTimeout.Event:
++					// Codes ran out or the socket closed; handled below.
++				default:
++					if evt.Error != nil {
++						c.logger.Warnf("QR pairing event %q: %v", evt.Event, evt.Error)
++					} else {
++						c.logger.Warnf("QR pairing event %q", evt.Event)
++					}
++				}
++			}
++			if paired {
+ 				connected <- true
+ 				break
+ 			}
++
++			c.pairingMutex.Lock()
++			inProg := c.pairingInProgress
++			c.pairingMutex.Unlock()
++			if c.Store.ID != nil || inProg {
++				// Paired (or pairing) by phone code; wait for it below.
++				break
++			}
++
++			fmt.Println("\nQR codes expired; requesting new ones...")
++			if c.IsConnected() {
++				c.Client.Disconnect()
++			}
++			time.Sleep(3 * time.Second)
+ 		}
+ 
+ 		// Wait for connection (via either QR scan or phone pairing code)
