@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0-ha5
+
+- Pairing page: read the link status from the bridge's unauthenticated `/api/health` instead of `/api/connection`. The bridge writes an `[AUDIT]` line for every authenticated request, so with the page open the app log got one every 5 seconds, pushing the QR codes out of view.
+
 ## 0.4.0-ha4
 
 - QR pairing: when the QR codes run out (about 2.5 minutes after start), the bridge now requests a fresh set straight away. Before, it printed nothing for about 15 minutes and then restarted, so you had to restart the app if you missed the first codes.

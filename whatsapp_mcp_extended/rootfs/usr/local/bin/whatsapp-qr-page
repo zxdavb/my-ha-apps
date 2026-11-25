@@ -4,7 +4,7 @@
 The Home Assistant log viewer adds space between lines, which breaks the
 half-block QR code the bridge prints. The bridge (patch 0002) also writes the
 current QR code string to $WA_QR_FILE; this page renders it as an SVG and
-refreshes itself. It shows the linked state from the bridge's local API.
+refreshes itself. It shows the linked state from the bridge's local /api/health.
 
 Only Home Assistant's ingress proxy may connect (it authenticates the user).
 """
@@ -13,6 +13,7 @@ import html
 import json
 import os
 import time
+import urllib.error
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -27,14 +28,21 @@ MAX_CODE_AGE = 65
 
 
 def bridge_status():
+    # /api/health needs no API key. Authenticated endpoints would add an
+    # [AUDIT] line to the app log on every page refresh. It answers 503
+    # (with the same JSON) while not connected to WhatsApp.
     try:
-        with open("/data/bridge_api_key", encoding="utf-8") as f:
-            key = f.read().strip()
-        req = urllib.request.Request(f"{BRIDGE}/connection", headers={"X-API-Key": key})
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            return json.load(resp)
+        with urllib.request.urlopen(f"{BRIDGE}/health", timeout=5) as resp:
+            status = json.load(resp)
+    except urllib.error.HTTPError as err:
+        try:
+            status = json.load(err)
+        except Exception:
+            return {"error": str(err)}
     except Exception as err:  # bridge starting or restarting
         return {"error": str(err)}
+    status["linked"] = not status.get("needs_pairing", True)
+    return status
 
 
 def current_code():
