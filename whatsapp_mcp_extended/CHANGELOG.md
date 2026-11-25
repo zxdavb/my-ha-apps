@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.0-ha6
+
+- Rename the app's display name from "My WhatsApp MCP Extended" to "My WhatsApp MCP". The slug (`whatsapp_mcp_extended`), hostname, options and paired session are unchanged.
+
 ## 0.4.0-ha5
 
 - Privacy: the bridge no longer writes message text, contact names or phone numbers to the app log. Upstream logged every history-synced message in full, plus the contact behind each incoming message and each call, at INFO. These lines are now DEBUG (`patches/0003-bridge-log-privacy.patch`) and only appear with `advanced.debug_logging` on. Lines already written stay in Home Assistant's system log until it rotates.
